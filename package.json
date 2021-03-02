@@ -37,12 +37,14 @@
     "@types/node-fetch": "^2.5.8",
     "amqp-connection-manager": "^3.2.2",
     "amqplib": "^0.7.0",
+    "codemirror": "^5.59.4",
     "dotenv": "^8.2.0",
     "lodash": "^4.17.21",
     "mysql": "^2.18.1",
     "next": "^10.0.7",
     "node-fetch": "^2.6.1",
     "react": "^17.0.1",
+    "react-codemirror2": "^7.2.1",
     "react-dom": "^17.0.1",
     "react-spring": "^8.0.27",
     "reflect-metadata": "^0.1.13",
@@ -50,9 +52,11 @@
     "rxjs": "^6.6.6",
     "sass": "^1.32.8",
     "sqlite3": "^5.0.2",
-    "typeorm": "^0.2.31"
+    "typeorm": "^0.2.31",
+    "use-resize-observer": "^7.0.0"
   },
   "devDependencies": {
+    "@convergencelabs/codemirror-collab-ext": "^0.1.2",
     "@nestjs/cli": "^7.5.6",
     "@nestjs/schematics": "^7.2.7",
     "@nestjs/testing": "^7.6.13",

@@ -1,4 +1,4 @@
 import { FirstService } from "./services/FirstService";
-import { SecondService } from "./services/SecondService";
+import { EditorService } from "./services/EditorService";
 
-export const Services = [FirstService, SecondService];
+export const Services = [FirstService, EditorService];
