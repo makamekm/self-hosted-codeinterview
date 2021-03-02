@@ -6,6 +6,7 @@ import { NextController } from "./next.controller";
 import { FrontendMiddleware } from "./frontend.middleware";
 import { ScheduleModule } from "@nestjs/schedule";
 import { AppController } from "./app.controller";
+import { AppGateway } from "./app-gateway.service";
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { AppController } from "./app.controller";
     ScheduleModule.forRoot(),
   ],
   controllers: [NextController, AppController],
-  providers: [],
+  providers: [AppGateway],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
@@ -42,7 +43,7 @@ export class AppModule {
 
     consumer
       .apply(FrontendMiddleware)
-      .exclude("api/(.*)", "asset/(.*)")
+      .exclude("api/(.*)", "asset/(.*)", "socket.io/(.*)")
       .forRoutes({
         path: "*",
         method: RequestMethod.GET,
