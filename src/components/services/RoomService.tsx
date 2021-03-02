@@ -19,10 +19,14 @@ export const RoomService = createService(
       shouldKeepConnection: false,
 
       async connect() {
+        if (!service.id) return;
+
         service.isConnecting = true;
         service.isConnected = false;
 
         if (!global.window) return;
+
+        console.log(service.id, service.username, service.managerSecret);
 
         const room = await service.socketService.emit(
           "connect-room",

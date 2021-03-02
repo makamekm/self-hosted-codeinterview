@@ -99,9 +99,11 @@ export class AppGateway
   @SubscribeMessage("connect-room")
   connectRoom(
     client: Socket,
-    roomId: string,
-    username: string,
-    managerSecret?: string
+    [roomId, username, managerSecret]: [
+      roomId: string,
+      username: string,
+      managerSecret: string
+    ]
   ):
     | {
         id: string;
@@ -151,8 +153,7 @@ export class AppGateway
   @SubscribeMessage("editor")
   handleMessage(
     client: Socket,
-    roomId: string,
-    ...args
+    [roomId, ...args]: any[]
   ): void | {
     error: string;
   } {
@@ -181,10 +182,15 @@ export class AppGateway
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
+
+    for (const key of Object.keys(this.rooms)) {
+      if (this.rooms[key].clients[client.id]) {
+        delete this.rooms[key].clients[client.id];
+      }
+    }
   }
 
-  handleConnection(client: Socket, ...args: any[]) {
+  handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
-    console.log(`Client connected: ${client.id}`, ...args);
   }
 }

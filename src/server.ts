@@ -18,7 +18,10 @@ export const getNestConfig = () => ({
 });
 
 export async function bootstrapAPI() {
-  const app = await NestFactory.create(AppModule, { cors: CORS });
+  const app = await NestFactory.create(AppModule, {
+    cors: CORS,
+    logger: ["error", "warn", "log"],
+  });
   const port = WEB_SERVER_PORT;
 
   app
