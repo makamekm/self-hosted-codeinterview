@@ -1,0 +1,218 @@
+{
+  "name": "nest-react-template",
+  "version": "0.0.1",
+  "description": "This is a Nest + Next JS template",
+  "author": "makamekm",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "clean": "rimraf dist demo-nest-api",
+    "build": "run-p build:ui build:api",
+    "build:api": "nest build",
+    "build:ui": "next build",
+    "start:raw": "cross-env ENV=prod NODE_ENV=production node -r dotenv/config -r ./tsconfig-paths-bootstrap.js -r ts-node/register ./src/main.ts",
+    "format": "prettier --write \"src/**/*.{tsx,ts,js,jsx}\" \"test/**/*.ts\"",
+    "start:dev": "nodemon --watch src -e ts --exec \"npm run start:dev:raw || exit 1\"",
+    "start:dev:raw": "cross-env ENV=dev node -r dotenv/config -r ./tsconfig-paths-bootstrap.js -r ts-node/register ./src/main.ts",
+    "start": "cross-env NODE_ENV=production node -r dotenv/config ./dist/main.js",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.{tsx,ts,js,jsx}\"",
+    "lint:fix": "eslint \"{src,apps,libs,test}/**/*.{tsx,ts,js,jsx}\"",
+    "test": "cross-env ENV=test node node_modules/.bin/jest",
+    "test:watch": "cross-env ENV=test node node_modules/.bin/jest --watch",
+    "test:cov": "cross-env ENV=test node node_modules/.bin/jest --coverage",
+    "test:debug": "cross-env ENV=test node --inspect-brk -r ./tsconfig-paths-bootstrap.js -r ts-node/register node_modules/.bin/jest --runInBand",
+    "commit": "cz",
+    "semantic-release": "semantic-release"
+  },
+  "dependencies": {
+    "@nestjs/common": "^7.6.13",
+    "@nestjs/core": "^7.6.13",
+    "@nestjs/platform-express": "^7.6.13",
+    "@nestjs/platform-socket.io": "^7.6.13",
+    "@nestjs/schedule": "^0.4.2",
+    "@nestjs/serve-static": "^2.1.4",
+    "@nestjs/typeorm": "^7.1.5",
+    "@nestjs/websockets": "^7.6.13",
+    "@nestpress/next": "^1.2.3",
+    "@types/node-fetch": "^2.5.8",
+    "amqp-connection-manager": "^3.2.2",
+    "amqplib": "^0.7.0",
+    "dotenv": "^8.2.0",
+    "lodash": "^4.17.21",
+    "mysql": "^2.18.1",
+    "next": "^10.0.7",
+    "node-fetch": "^2.6.1",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-spring": "^8.0.27",
+    "reflect-metadata": "^0.1.13",
+    "rimraf": "^3.0.2",
+    "rxjs": "^6.6.6",
+    "sass": "^1.32.8",
+    "sqlite3": "^5.0.2",
+    "typeorm": "^0.2.31"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^7.5.6",
+    "@nestjs/schematics": "^7.2.7",
+    "@nestjs/testing": "^7.6.13",
+    "@semantic-release/changelog": "^5.0.1",
+    "@semantic-release/commit-analyzer": "^8.0.1",
+    "@semantic-release/git": "^9.0.0",
+    "@semantic-release/npm": "^7.0.10",
+    "@semantic-release/release-notes-generator": "^9.0.1",
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/react": "^11.2.5",
+    "@testing-library/user-event": "^12.7.3",
+    "@types/express": "^4.17.11",
+    "@types/jest": "26.0.20",
+    "@types/lodash": "^4.14.168",
+    "@types/node": "^14.14.31",
+    "@types/react": "^17.0.2",
+    "@types/react-dom": "^17.0.1",
+    "@types/supertest": "^2.0.10",
+    "@typescript-eslint/eslint-plugin": "4.15.2",
+    "@typescript-eslint/parser": "4.15.2",
+    "autoprefixer": "^10.2.4",
+    "babel-jest": "^26.6.3",
+    "classnames": "^2.2.6",
+    "commitizen": "^4.2.3",
+    "cross-env": "^7.0.3",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "7.20.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-import": "^2.22.1",
+    "husky": "^5.1.1",
+    "jest": "26.6.3",
+    "lint-staged": "^10.5.4",
+    "mobx": "^6.1.7",
+    "mobx-react": "^7.1.0",
+    "mobx-utils": "^6.0.3",
+    "moment": "^2.29.1",
+    "nodemon": "^2.0.7",
+    "npm-run-all": "^4.1.5",
+    "postcss": "^8.2.6",
+    "prettier": "^2.2.1",
+    "react-scripts": "4.0.3",
+    "react-service-provider": "^1.2.1",
+    "react-test-renderer": "^17.0.1",
+    "semantic-release": "^17.3.9",
+    "styled-jsx": "^3.4.4",
+    "supertest": "^6.1.3",
+    "tailwindcss": "^2.0.3",
+    "ts-jest": "26.5.2",
+    "ts-loader": "^8.0.17",
+    "ts-node": "^9.1.1",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^4.2.2"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "jest": {
+    "testMatch": [
+      "**/?(*.)+(spec|test).[jt]s?(x)"
+    ],
+    "collectCoverageFrom": [
+      "**/*.{js,jsx,ts,tsx}",
+      "!**/node_modules/**",
+      "!**/vendor/**"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "json",
+      "ts",
+      "tsx"
+    ],
+    "preset": "ts-jest",
+    "transform": {
+      "\\.ts$": [
+        "ts-jest"
+      ],
+      "\\.tsx$": [
+        "babel-jest",
+        {
+          "presets": [
+            "next/babel"
+          ],
+          "plugins": [
+            [
+              "@babel/plugin-proposal-decorators",
+              {
+                "legacy": true
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    "rootDir": "src",
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "@env/(.*)$": "<rootDir>/env/test/$1",
+      "~/(.*)$": "<rootDir>/$1"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true"
+    }
+  },
+  "lint-staged": {
+    "*.{tsx,ts}": [
+      "eslint --fix",
+      "prettier --write",
+      "jest --findRelatedTests"
+    ]
+  },
+  "release": {
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/changelog",
+        {
+          "changelogFile": "CHANGELOG.md"
+        }
+      ],
+      "@semantic-release/git"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "pkg": {
+    "scripts": [
+      "dist/**/*.js",
+      ".next/**/*.js"
+    ],
+    "assets": [
+      "dist/**/*.js.map",
+      "public/**/*",
+      ".next/**/*"
+    ]
+  },
+  "majestic": {
+    "jestScriptPath": "./node_modules/.bin/jest",
+    "env": {
+      "ENV": "test"
+    }
+  }
+}
