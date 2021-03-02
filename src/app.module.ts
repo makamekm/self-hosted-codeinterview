@@ -1,15 +1,33 @@
-import { MiddlewareConsumer, Module, RequestMethod } from "@nestjs/common";
+import {
+  MiddlewareConsumer,
+  Module,
+  RequestMethod,
+  CacheModule,
+} from "@nestjs/common";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { PUBLIC_FOLDER } from "@env/config";
 import { NextMiddleware, NextModule } from "@nestpress/next";
+import * as redisStore from "cache-manager-redis-store";
 import { NextController } from "./next.controller";
 import { FrontendMiddleware } from "./frontend.middleware";
 import { ScheduleModule } from "@nestjs/schedule";
+import { RedisModule } from "nestjs-redis";
 import { AppController } from "./app.controller";
 import { AppGateway } from "./app-gateway.service";
 
 @Module({
   imports: [
+    // CacheModule.register(),
+    RedisModule.register({
+      host: "localhost",
+      port: 6379,
+    }),
+    CacheModule.register({
+      ttl: 5,
+      store: redisStore,
+      host: "localhost",
+      port: 6379,
+    }),
     NextModule,
     ServeStaticModule.forRoot({
       rootPath: PUBLIC_FOLDER,

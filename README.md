@@ -51,3 +51,7 @@ or with majestic
 ## Release
 
 `npm run semantic-release`
+
+## Redis
+
+`docker run --name redis -d -p 6379:6379 --restart unless-stopped redis`

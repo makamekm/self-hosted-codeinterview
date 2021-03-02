@@ -6,10 +6,12 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from "@nestjs/websockets";
-import { Logger } from "@nestjs/common";
+import { CACHE_MANAGER, Inject, Logger } from "@nestjs/common";
 import { Socket, Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
 import rug from "random-username-generator";
+import { Cache } from "cache-manager";
+import { RedisService } from "nestjs-redis";
 
 class RoomClient {
   id: string = "";
@@ -62,23 +64,60 @@ export class AppGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly redisService: RedisService
+  ) {}
+
   private logger: Logger = new Logger("AppGateway");
 
   rooms: {
     [id: string]: Room;
   } = {};
 
+  async storeRoom(room: Room) {
+    let result = await this.redisService.getClient().set(
+      room.id,
+      JSON.stringify({
+        id: room.id,
+        managerSecret: room.managerSecret,
+      })
+    );
+    if (result) {
+      this.logger.log(
+        `Room has been cached: ${room.id} and managerKey: ${room.managerSecret}`
+      );
+    }
+  }
+
+  async restoreRoom(roomId: string) {
+    const serializedRoom = await this.redisService.getClient().get(roomId);
+    if (serializedRoom) {
+      const roomData: {
+        id: string;
+        managerSecret: string;
+      } = JSON.parse(serializedRoom);
+      const room = new Room(roomData.id, roomData.managerSecret);
+      this.rooms[room.id] = room;
+
+      this.logger.log(
+        `Room has been restored from cache: ${room.id} and managerKey: ${room.managerSecret}`
+      );
+    }
+  }
+
   @SubscribeMessage("create-room")
-  makeRoom(
+  async makeRoom(
     client: Socket
-  ):
+  ): Promise<
     | {
         id: string;
         managerSecret: string;
       }
     | {
         error: string;
-      } {
+      }
+  > {
     const id = uuidv4();
     const managerSecret = uuidv4();
 
@@ -90,6 +129,8 @@ export class AppGateway
       `Room has been created: ${id} and managerKey: ${managerSecret} by ${client.id}`
     );
 
+    await this.storeRoom(room);
+
     return {
       id: room.id,
       managerSecret: managerSecret,
@@ -97,14 +138,14 @@ export class AppGateway
   }
 
   @SubscribeMessage("connect-room")
-  connectRoom(
+  async connectRoom(
     client: Socket,
     [roomId, username, managerSecret]: [
       roomId: string,
       username: string,
       managerSecret: string
     ]
-  ):
+  ): Promise<
     | {
         id: string;
         roomId: string;
@@ -113,8 +154,14 @@ export class AppGateway
       }
     | {
         error: string;
-      } {
+      }
+  > {
     username = username || rug.generate();
+
+    if (!this.rooms[roomId]) {
+      await this.restoreRoom(roomId);
+    }
+
     const room = this.rooms[roomId];
 
     if (!room) {
@@ -151,12 +198,12 @@ export class AppGateway
   }
 
   @SubscribeMessage("editor")
-  handleMessage(
+  async handleMessage(
     client: Socket,
     [roomId, ...args]: any[]
-  ): void | {
+  ): Promise<void | {
     error: string;
-  } {
+  }> {
     const room = this.rooms[roomId];
 
     if (!room) {
