@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 import rug from "random-username-generator";
 import { Cache } from "cache-manager";
 import { RedisService } from "nestjs-redis";
+import { debounce } from "ts-debounce";
 
 class RoomClient {
   id: string = "";
@@ -34,14 +35,22 @@ class RoomClient {
 
 class Room {
   id: string = "";
+  text: string = "";
   managerSecret: string = "";
   clients: {
     [id: string]: RoomClient;
   } = {};
 
-  constructor(id: string, managerSecret: string) {
+  storeDebounceFn: () => void;
+
+  constructor(
+    id: string,
+    managerSecret: string,
+    storeFn: (room: Room) => Promise<void>
+  ) {
     this.id = id;
     this.managerSecret = managerSecret;
+    this.storeDebounceFn = debounce(() => storeFn(this), 1000);
   }
 
   sendExcept(client: RoomClient, event: string, ...args: any) {
@@ -75,12 +84,13 @@ export class AppGateway
     [id: string]: Room;
   } = {};
 
-  async storeRoom(room: Room) {
+  storeRoom = async (room: Room) => {
     let result = await this.redisService.getClient().set(
       room.id,
       JSON.stringify({
         id: room.id,
         managerSecret: room.managerSecret,
+        text: room.text,
       })
     );
     if (result) {
@@ -88,7 +98,7 @@ export class AppGateway
         `Room has been cached: ${room.id} and managerKey: ${room.managerSecret}`
       );
     }
-  }
+  };
 
   async restoreRoom(roomId: string) {
     const serializedRoom = await this.redisService.getClient().get(roomId);
@@ -96,8 +106,14 @@ export class AppGateway
       const roomData: {
         id: string;
         managerSecret: string;
+        text: string;
       } = JSON.parse(serializedRoom);
-      const room = new Room(roomData.id, roomData.managerSecret);
+      const room = new Room(
+        roomData.id,
+        roomData.managerSecret,
+        this.storeRoom
+      );
+      room.text = roomData.text;
       this.rooms[room.id] = room;
 
       this.logger.log(
@@ -121,7 +137,7 @@ export class AppGateway
     const id = uuidv4();
     const managerSecret = uuidv4();
 
-    let room = new Room(id, managerSecret);
+    let room = new Room(id, managerSecret, this.storeRoom);
 
     this.rooms[room.id] = room;
 
@@ -151,6 +167,12 @@ export class AppGateway
         roomId: string;
         username: string;
         isManager: boolean;
+        text: string;
+        clients: {
+          username: string;
+          id: string;
+          isManager: boolean;
+        }[];
       }
     | {
         error: string;
@@ -189,16 +211,28 @@ export class AppGateway
       `Client Room has been created: ${roomId} and isManager: ${roomClient.isManager} by ${client.id} username: {username}`
     );
 
+    room.sendExcept(roomClient, "room-add-client", {
+      id: roomClient.id,
+      username: roomClient.username,
+      isManager: roomClient.isManager,
+    });
+
     return {
       id: client.id,
       username,
       roomId,
       isManager: roomClient.isManager,
+      text: room.text,
+      clients: Object.keys(room.clients).map((id) => ({
+        id: id,
+        username: room.clients[id].username,
+        isManager: room.clients[id].isManager,
+      })),
     };
   }
 
   @SubscribeMessage("editor")
-  async handleMessage(
+  async handleEditor(
     client: Socket,
     [roomId, ...args]: any[]
   ): Promise<void | {
@@ -223,6 +257,59 @@ export class AppGateway
     room.sendExcept(roomClient, "editor", ...args);
   }
 
+  @SubscribeMessage("editor-selection")
+  async handleEditorSalection(
+    client: Socket,
+    [roomId, ...args]: any[]
+  ): Promise<void | {
+    error: string;
+  }> {
+    const room = this.rooms[roomId];
+
+    if (!room) {
+      return {
+        error: "The room has not been found!",
+      };
+    }
+
+    const roomClient = room.clients[client.id];
+
+    if (!roomClient) {
+      return {
+        error: "The room client has not been found!",
+      };
+    }
+
+    room.sendExcept(roomClient, "editor-selection", client.id, ...args);
+  }
+
+  @SubscribeMessage("editor-state")
+  async handleEditorState(
+    client: Socket,
+    [roomId, text]: any[]
+  ): Promise<void | {
+    error: string;
+  }> {
+    const room = this.rooms[roomId];
+
+    if (!room) {
+      return {
+        error: "The room has not been found!",
+      };
+    }
+
+    const roomClient = room.clients[client.id];
+
+    if (!roomClient) {
+      return {
+        error: "The room client has not been found!",
+      };
+    }
+
+    room.text = text;
+    room.storeDebounceFn();
+  }
+
   afterInit(server: Server) {
     this.logger.log("Init");
   }
@@ -231,8 +318,15 @@ export class AppGateway
     this.logger.log(`Client disconnected: ${client.id}`);
 
     for (const key of Object.keys(this.rooms)) {
-      if (this.rooms[key].clients[client.id]) {
-        delete this.rooms[key].clients[client.id];
+      const room = this.rooms[key];
+      if (room.clients[client.id]) {
+        const roomClient = room.clients[client.id];
+        delete room.clients[client.id];
+        room.sendExcept(roomClient, "room-remove-client", {
+          id: roomClient.id,
+          username: roomClient.username,
+          isManager: roomClient.isManager,
+        });
       }
     }
   }

@@ -27,7 +27,7 @@ const Editor: React.FC = observer(() => {
   });
   const codemirrorRef = React.useRef();
   React.useEffect(() => {
-    service.editorRef = codemirrorRef.current;
+    // service.editorRef = codemirrorRef.current;
   }, [service, codemirrorRef]);
   React.useEffect(() => {
     updateEditorSize(height);

@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import { RoomService } from "~/components/services/RoomService";
 // import  from "react-codemirror2";
 
-const Editor = dynamic(() => import("~/components/CodeMirror"), {
+const Editor = dynamic(() => import("~/components/Editor"), {
   ssr: false,
 });
 

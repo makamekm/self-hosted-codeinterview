@@ -3,11 +3,13 @@ import { createService } from "react-service-provider";
 import { useLocalObservable } from "mobx-react";
 import { makeHotPromise } from "~/hot-promise.util";
 import { SocketService } from "./SocketService";
+import { EditorService } from "./EditorService";
 
 export const RoomService = createService(
   () => {
     const service = useLocalObservable(() => ({
       socketService: null as ReturnType<typeof SocketService.useState>,
+      editorService: null as ReturnType<typeof EditorService.useState>,
       connectHotPromise: makeHotPromise(),
       id: "",
       username: "",
@@ -16,6 +18,11 @@ export const RoomService = createService(
       isConnecting: false,
       clientId: "",
       isManager: false,
+      clients: [] as {
+        id: string;
+        username: string;
+        isManager: boolean;
+      }[],
       shouldKeepConnection: false,
 
       async connect() {
@@ -25,8 +32,6 @@ export const RoomService = createService(
         service.isConnected = false;
 
         if (!global.window) return;
-
-        console.log(service.id, service.username, service.managerSecret);
 
         const room = await service.socketService.emit(
           "connect-room",
@@ -42,9 +47,11 @@ export const RoomService = createService(
           service.isConnected = false;
         } else {
           service.clientId = room.id;
+          service.clients = room.clients;
           service.isManager = room.isManager;
           service.username = room.username;
           service.isConnected = true;
+          service.editorService.value = room.text;
           service.connectHotPromise.resolve();
         }
       },
@@ -52,9 +59,6 @@ export const RoomService = createService(
         if (service.isConnected) {
           service.socketService.emit(type, service.id, ...args);
         }
-      },
-      onEditorData: (...args) => {
-        console.log(...args);
       },
       onConnect: () => {
         if (service.shouldKeepConnection && !service.isConnecting) {
@@ -70,7 +74,7 @@ export const RoomService = createService(
   },
   (service) => {
     service.socketService = React.useContext(SocketService);
-    service.socketService.useOn("editor", service.onEditorData);
+    service.editorService = React.useContext(EditorService);
     service.socketService.useOn("connect", service.onConnect);
     service.socketService.useOn("disconnect", service.onDisconnect);
   }
