@@ -4,6 +4,13 @@ import { useLocalObservable } from "mobx-react";
 import AceEditor from "react-ace";
 import { SocketService } from "./SocketService";
 import { RoomService } from "./RoomService";
+import {
+  AceAnchor,
+  addSelectionClient,
+  clearAllSelectionClient,
+  removeIdSelectionClient,
+  setAnchorSelectionClient,
+} from "../EditorSelection";
 
 export const EditorService = createService(
   () => {
@@ -42,17 +49,16 @@ export const EditorService = createService(
         // });
         // console.log({ stindex, edindex, prefixed });
       },
-      onEditorSelectionData: (clientId, selections) => {
-        let session = service.editor.getSession();
-        let doc = session.getDocument();
-
+      onEditorSelectionData: (clientId, selections: AceAnchor) => {
+        if (!service.editor) return;
         console.log(clientId, selections);
+        setAnchorSelectionClient(service.editor, clientId, selections);
       },
       onChange: async (text, event) => {
         if (service.suppressEvents) {
           return;
         }
-        await service.roomService.emit("editor", event, text);
+        await service.roomService.emit("editor", event);
         await service.roomService.emit("editor-state", text);
       },
       onEditorData: (event) => {
@@ -61,6 +67,21 @@ export const EditorService = createService(
         service.suppressEvents = true;
         doc.applyDelta(event);
         service.suppressEvents = false;
+      },
+      clearAnchors: () => {
+        clearAllSelectionClient(service.editor);
+      },
+      makeAnchors: () => {
+        clearAllSelectionClient(service.editor);
+        service.roomService.clients.forEach((client) => {
+          addSelectionClient(client.id);
+        });
+      },
+      onAddClient: (client) => {
+        addSelectionClient(client.id);
+      },
+      onRemoveClient: (client) => {
+        removeIdSelectionClient(service.editor, client.id);
       },
     }));
     return service;
@@ -74,5 +95,7 @@ export const EditorService = createService(
       "editor-selection",
       service.onEditorSelectionData
     );
+    service.socketService.useOn("room-add-client", service.onAddClient);
+    service.socketService.useOn("room-remove-client", service.onRemoveClient);
   }
 );

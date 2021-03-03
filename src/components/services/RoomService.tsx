@@ -52,6 +52,7 @@ export const RoomService = createService(
           service.username = room.username;
           service.isConnected = true;
           service.editorService.value = room.text;
+          service.editorService.makeAnchors();
           service.connectHotPromise.resolve();
         }
       },
@@ -67,7 +68,17 @@ export const RoomService = createService(
       },
       onDisconnect: () => {
         service.isConnected = false;
+        service.editorService.clearAnchors();
         service.connectHotPromise.reinit();
+      },
+      onAddClient: (client) => {
+        service.clients.push(client);
+      },
+      onRemoveClient: (client) => {
+        service.clients.splice(
+          service.clients.findIndex((c) => c.id === client.id),
+          1
+        );
       },
     }));
     return service;
@@ -77,5 +88,7 @@ export const RoomService = createService(
     service.editorService = React.useContext(EditorService);
     service.socketService.useOn("connect", service.onConnect);
     service.socketService.useOn("disconnect", service.onDisconnect);
+    service.socketService.useOn("room-add-client", service.onAddClient);
+    service.socketService.useOn("room-remove-client", service.onRemoveClient);
   }
 );

@@ -1,34 +1,43 @@
 import AceEditor from "react-ace";
 
-export const addSelectionClient = (id, name) => {
-  const userslist = document.querySelector("#users");
-  const usericon = document.createElement("li");
-  usericon.classList.add(`u-${id}`);
-  usericon.innerHTML = name;
-  userslist.appendChild(usericon);
+export type AceAnchor = {
+  start: {
+    row: number;
+    column: number;
+  };
+  end: {
+    row: number;
+    column: number;
+  };
+  isBackwards: boolean;
+};
 
+export const addSelectionClient = (id: string) => {
   const color = idToColor(id);
   const styleTag = document.createElement("style");
   styleTag.id = `style-${id}`;
   styleTag.innerHTML = `
-              .u-${id} { background-color: ${color}; }
-              .ace_marker-layer .u-${id} { opacity: 0.35; }
-              .ace_marker-layer .u-${id}.empty { background-color: transparent; }
-              .ace_marker-layer .u-${id}.cursor { opacity: 1; background-color: transparent; }
-              .ace_marker-layer .u-${id}.cursor.left { border-left: 2px solid ${color} }
-              .ace_marker-layer .u-${id}.cursor.right { border-right: 2px solid ${color} }
-          `;
+    .u-${id} { background-color: ${color}; }
+    .ace_marker-layer .u-${id} { opacity: 0.35; }
+    .ace_marker-layer .u-${id}.empty { background-color: transparent; }
+    .ace_marker-layer .u-${id}.cursor { opacity: 1; background-color: transparent; }
+    .ace_marker-layer .u-${id}.cursor.left { border-left: 2px solid ${color} }
+    .ace_marker-layer .u-${id}.cursor.right { border-right: 2px solid ${color} }
+  `;
   document.querySelector("head").appendChild(styleTag);
 };
 
-const anchorMap = {};
+const anchorMap: {
+  [id: string]: number[];
+} = {};
+
 export const setAnchorSelectionClient = (
   ed: AceEditor["editor"],
-  id,
-  anchor
+  id: string,
+  anchor: AceAnchor
 ) => {
   const session = ed.getSession();
-  const doc = session.getDocument();
+  // const doc = session.getDocument();
   const selection = ed.getSelection();
 
   if (id in anchorMap) {
@@ -38,57 +47,46 @@ export const setAnchorSelectionClient = (
     delete anchorMap[id];
   }
 
-  // Whether or not the cursor is actually at the beginning
-  // or end of the selection
-  let emptyClass = "";
-  let stindex = anchor.stindex;
-  const edindex = anchor.edindex;
+  // let emptyClass = "";
 
-  // Add selection
-  let stPos, edPos, range;
   anchorMap[id] = [];
 
-  if (stindex !== edindex) {
-    stPos = doc.indexToPosition(stindex);
-    edPos = doc.indexToPosition(edindex);
-    range = selection.getRange();
-    range.start = stPos;
-    range.end = edPos;
+  const range = selection.getRange();
+  range.start = anchor.start;
+  range.end = anchor.end;
 
-    anchorMap[id].push(session.addMarker(range, `u-${id}`));
-  }
+  anchorMap[id].push(session.addMarker(range, `u-${id}`, "text"));
 
-  if (stindex === edindex) {
-    stindex = Math.max(0, stindex - 1);
-    emptyClass = "empty";
-  }
+  // if (!range.isMultiLine && range.start.column === range.end.column) {
+  //   emptyClass = "empty";
+  // }
 
   // Add cursor
-  const index = anchor.prefixed ? stindex : edindex;
-  stPos = doc.indexToPosition(index + (anchor.prefixed ? 0 : -1));
-  edPos = doc.indexToPosition(index + (anchor.prefixed ? 1 : 0));
-  range = ed.selection.getRange();
-  range.start = stPos;
-  range.end = edPos;
+  // const index = anchor.prefixed ? stindex : edindex;
+  // range = ed.selection.getRange();
+  // range.start = stPos;
+  // range.end = edPos;
 
-  anchorMap[id].push(
-    session.addMarker(
-      range,
-      `u-${id} ${emptyClass} cursor ${anchor.prefixed ? "left" : "right"}`
-    )
-  );
+  // anchorMap[id].push(
+  //   session.addMarker(
+  //     range,
+  //     `u-${id} ${emptyClass} cursor ${anchor.isBackwards ? "left" : "right"}`,
+  //     "text"
+  //   )
+  // );
 };
 
 export const removeIdSelectionClient = (ed: AceEditor["editor"], id) => {
-  document.querySelector(`#users li.u-${id}`).remove();
   document.querySelector(`#style-${id}`).remove();
-  if (id in anchorMap) {
-    anchorMap[id].forEach((m) => ed.getSession().removeMarker(m));
-    delete anchorMap[id];
+  if (ed != null) {
+    if (id in anchorMap) {
+      anchorMap[id].forEach((m) => ed.getSession().removeMarker(m));
+      delete anchorMap[id];
+    }
   }
 };
 
-export const idToColor = (id) => {
+export const idToColor = (id: string) => {
   let total = 0;
   for (let c of id) total += c.charCodeAt(0);
 
@@ -102,6 +100,6 @@ export const idToColor = (id) => {
   return color;
 };
 
-export const clearAllSelectionClient = (ed: AceEditor["editor"]) => {
+export const clearAllSelectionClient = (ed?: AceEditor["editor"]) => {
   for (let key in anchorMap) removeIdSelectionClient(ed, key);
 };

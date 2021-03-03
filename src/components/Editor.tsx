@@ -60,10 +60,20 @@ const Editor: React.FC = observer(() => {
         //   service.value = value;
         // }}
       />
-      <style jsx>{`
-        :global(#editor) {
+      <style jsx global>{`
+        #editor {
           width: 100%;
           height: 100%;
+        }
+
+        .ace_marker-layer div {
+          border-radius: 0;
+          position: absolute;
+          opacity: 0.5;
+        }
+
+        .ace_marker-layer .cursor {
+          animation: cursorThrob 1s infinite;
         }
       `}</style>
     </div>
