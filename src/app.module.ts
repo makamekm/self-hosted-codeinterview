@@ -14,6 +14,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { RedisModule } from "nestjs-redis";
 import { AppController } from "./app.controller";
 import { AppGateway } from "./app-gateway.service";
+import { CodeRunnerService } from "./code-runner.provider";
 
 @Module({
   imports: [
@@ -38,7 +39,7 @@ import { AppGateway } from "./app-gateway.service";
     ScheduleModule.forRoot(),
   ],
   controllers: [NextController, AppController],
-  providers: [AppGateway],
+  providers: [AppGateway, CodeRunnerService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

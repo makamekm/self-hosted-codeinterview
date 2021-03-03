@@ -80,7 +80,12 @@ export const RoomService = createService(
           1
         );
       },
+      execute: async () => {
+        return await service.socketService.emit("execute-room", service.id);
+      },
     }));
+    console.log(service);
+
     return service;
   },
   (service) => {

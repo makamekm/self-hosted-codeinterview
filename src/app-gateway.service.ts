@@ -13,6 +13,7 @@ import rug from "random-username-generator";
 import { Cache } from "cache-manager";
 import { RedisService } from "nestjs-redis";
 import { debounce } from "ts-debounce";
+import { CodeRunnerService } from "./code-runner.provider";
 
 class RoomClient {
   id: string = "";
@@ -75,7 +76,8 @@ export class AppGateway
 
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    private readonly redisService: RedisService
+    private readonly redisService: RedisService,
+    private codeRunnerService: CodeRunnerService
   ) {}
 
   private logger: Logger = new Logger("AppGateway");
@@ -151,6 +153,41 @@ export class AppGateway
       id: room.id,
       managerSecret: managerSecret,
     };
+  }
+
+  @SubscribeMessage("execute-room")
+  async executeRoom(
+    client: Socket,
+    roomId: string
+  ): Promise<
+    | {
+        data: string;
+        time?: number;
+        err: string;
+      }
+    | {
+        error: string;
+      }
+  > {
+    if (!this.rooms[roomId]) {
+      await this.restoreRoom(roomId);
+    }
+
+    const room = this.rooms[roomId];
+
+    if (!room) {
+      return {
+        error: "The room has not been found!",
+      };
+    }
+
+    this.logger.log(`Room is being executed: ${roomId} by ${client.id}`);
+
+    let result = await this.codeRunnerService.execute(room.text);
+
+    this.logger.log(`Room has been executed: ${result.time} by ${client.id}`);
+
+    return result;
   }
 
   @SubscribeMessage("connect-room")
