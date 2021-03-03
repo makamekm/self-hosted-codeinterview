@@ -162,7 +162,6 @@ export class AppGateway
   ): Promise<
     | {
         data: string;
-        time?: number;
         err: string;
       }
     | {
@@ -185,7 +184,7 @@ export class AppGateway
 
     let result = await this.codeRunnerService.execute(room.text);
 
-    this.logger.log(`Room has been executed: ${result.time} by ${client.id}`);
+    this.logger.log(`Room has been executed: ${roomId} by ${client.id}`);
 
     return result;
   }

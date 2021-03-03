@@ -11,12 +11,14 @@ import {
   removeIdSelectionClient,
   setAnchorSelectionClient,
 } from "../EditorSelection";
+import { TerminalService } from "./TerminalService";
 
 export const EditorService = createService(
   () => {
     const service = useLocalObservable(() => ({
       socketService: null as ReturnType<typeof SocketService.useState>,
       roomService: null as ReturnType<typeof RoomService.useState>,
+      terminalService: null as ReturnType<typeof TerminalService.useState>,
       editor: null as AceEditor["editor"],
       value: "<h1>I ♥ react-codemirror2</h1>",
       suppressEvents: false,
@@ -83,12 +85,36 @@ export const EditorService = createService(
       onRemoveClient: (client) => {
         removeIdSelectionClient(service.editor, client.id);
       },
+      isExecuting: false,
+      onExecute: async () => {
+        if (service.isExecuting) {
+          return;
+        }
+        service.isExecuting = true;
+        try {
+          service.terminalService.addOutput("Executing...");
+          const { data, err, code } = await service.roomService.execute();
+          service.terminalService.addOutput(
+            `Finished running with status code: ${code}\nOutput:`
+          );
+          if (data) {
+            service.terminalService.addOutput(data);
+          } else if (data) {
+            service.terminalService.addOutput(err);
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          service.isExecuting = false;
+        }
+      },
     }));
     return service;
   },
   (service) => {
     service.socketService = React.useContext(SocketService);
     service.roomService = React.useContext(RoomService);
+    service.terminalService = React.useContext(TerminalService);
     React.useEffect(() => service.onLoad(), [service, service.onLoad]);
     service.socketService.useOn("editor", service.onEditorData);
     service.socketService.useOn(

@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
+import classNames from "classnames";
 import React, { useContext } from "react";
-import { UnControlled as CodeMirror } from "react-codemirror2";
 import { EditorService } from "./services/EditorService";
 import useResizeObserver from "use-resize-observer";
 import AceEditor from "react-ace";
@@ -60,6 +60,20 @@ const Editor: React.FC = observer(() => {
         //   service.value = value;
         // }}
       />
+      <div className="absolute bottom-4 left-4 z-10">
+        <button
+          disabled={service.isExecuting}
+          onClick={service.onExecute}
+          className={classNames(
+            {
+              "pointer-events-none opacity-40": service.isExecuting,
+            },
+            "outline-none focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50 bg-blue-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-blue-600 mr-6"
+          )}
+        >
+          RUN
+        </button>
+      </div>
       <style jsx global>{`
         #editor {
           width: 100%;
