@@ -11,6 +11,8 @@ export const UserService = createService(
       router: null as NextRouter,
       socketService: null as ReturnType<typeof SocketService.useState>,
       user: null as {
+        id: string;
+        username: string;
         email: string;
         firstName: string;
         lastName: string;
@@ -19,9 +21,14 @@ export const UserService = createService(
       },
       isCreating: false,
       loginGoogle() {
-        service.router.push({
-          pathname: "/api/google",
+        Cookies.set("redirect_to", window.location.pathname, {
+          expires: 1,
+          path: "/",
         });
+        window.location.href = "/api/google";
+        // service.router.push({
+        //   pathname: "/api/google?from=" + window.location.pathname,
+        // });
       },
       logout() {
         Cookies.remove("session");
