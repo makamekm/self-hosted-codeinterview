@@ -73,10 +73,12 @@ export const EditorService = createService(
         clearAllSelectionClient(service.editor);
       },
       makeAnchors: () => {
-        clearAllSelectionClient(service.editor);
-        service.roomService.clients.forEach((client) => {
-          addSelectionClient(client.id);
-        });
+        if (service.roomService.room) {
+          clearAllSelectionClient(service.editor);
+          Object.keys(service.roomService.room.clients).forEach((key) => {
+            addSelectionClient(key);
+          });
+        }
       },
       onAddClient: (client) => {
         addSelectionClient(client.id);

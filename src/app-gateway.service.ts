@@ -14,19 +14,12 @@ import { Cache } from "cache-manager";
 import { RedisService } from "nestjs-redis";
 import { debounce } from "ts-debounce";
 import { CodeRunnerService } from "./code-runner.provider";
-import { WsJwtGuard, GoogleUser } from "./ws-jwt-guard";
+import { WsJwtGuard } from "./ws-jwt-guard";
+import { UserDto } from "./dto/user.dto";
+import { RoomClientDto, RoomDto } from "./dto/room.dto";
+import { ErrorDto } from "./dto/error.dto";
 
-interface RoomClientDto {
-  id: string;
-  username: string;
-  isManager: boolean;
-}
-
-interface ErrorDto {
-  error: string;
-}
-
-class RoomClient {
+class RoomClient implements RoomClientDto {
   id: string = "";
   socket: Socket;
   username: string;
@@ -43,9 +36,17 @@ class RoomClient {
     this.username = username;
     this.isManager = isManager;
   }
+
+  serialize(): RoomClientDto {
+    return {
+      id: this.id,
+      isManager: this.isManager,
+      username: this.username,
+    };
+  }
 }
 
-class Room {
+class Room implements RoomDto {
   id: string = "";
   text: string = "";
   managerSecret: string = "";
@@ -77,6 +78,17 @@ class Room {
     for (const key of Object.keys(this.clients)) {
       this.clients[key].socket.emit(event, ...args);
     }
+  }
+
+  serialize(): RoomDto {
+    return {
+      id: this.id,
+      text: this.text,
+      clients: Object.keys(this.clients).reduce((acc, key) => {
+        acc[key] = this.clients[key].serialize();
+        return acc;
+      }, {}),
+    };
   }
 }
 
@@ -147,20 +159,8 @@ export class AppGateway
     }
   }
 
-  // googleLogin(user: GoogleUser) {
-  //   return user;
-  // }
-
   @SubscribeMessage("create-room")
-  async makeRoom(
-    client: Socket
-  ): Promise<
-    | {
-        id: string;
-        managerSecret: string;
-      }
-    | ErrorDto
-  > {
+  async makeRoom(client: Socket): Promise<RoomDto | ErrorDto> {
     const id = uuidv4();
     const managerSecret = uuidv4();
 
@@ -174,8 +174,9 @@ export class AppGateway
 
     await this.storeRoom(room);
 
+    // TODO: serialize
     return {
-      id: room.id,
+      ...room.serialize(),
       managerSecret: managerSecret,
     };
   }
@@ -303,22 +304,16 @@ export class AppGateway
   @UseGuards(WsJwtGuard)
   @SubscribeMessage("connect-room")
   async connectRoom(
-    client: Socket & { user: GoogleUser },
-    [roomId, username, managerSecret]: [
-      roomId: string,
-      username: string,
-      managerSecret: string
-    ]
+    client: Socket & { user: UserDto },
+    [roomId, managerSecret]: [roomId: string, managerSecret: string]
   ): Promise<
-    | (RoomClientDto & {
-        roomId: string;
-        text: string;
-        clients: RoomClientDto[];
-      })
+    | {
+        room: RoomDto;
+        client: RoomClientDto;
+      }
     | ErrorDto
   > {
-    username =
-      username ||
+    const username =
       (client.user && client.user.firstName + " " + client.user.lastName) ||
       rug.generate();
 
@@ -360,16 +355,8 @@ export class AppGateway
     });
 
     return {
-      id: client.id,
-      username,
-      roomId,
-      isManager: roomClient.isManager,
-      text: room.text,
-      clients: Object.keys(room.clients).map((id) => ({
-        id: id,
-        username: room.clients[id].username,
-        isManager: room.clients[id].isManager,
-      })),
+      client: roomClient.serialize(),
+      room: room.serialize(),
     };
   }
 

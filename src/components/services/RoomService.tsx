@@ -4,6 +4,7 @@ import { useLocalObservable } from "mobx-react";
 import { makeHotPromise } from "~/hot-promise.util";
 import { SocketService } from "./SocketService";
 import { EditorService } from "./EditorService";
+import { RoomClientDto, RoomDto } from "~/dto/room.dto";
 
 export const RoomService = createService(
   () => {
@@ -11,18 +12,19 @@ export const RoomService = createService(
       socketService: null as ReturnType<typeof SocketService.useState>,
       editorService: null as ReturnType<typeof EditorService.useState>,
       connectHotPromise: makeHotPromise(),
+      room: null as RoomDto,
+      client: null as RoomClientDto,
       id: "",
-      username: "",
       managerSecret: "",
       isConnected: false,
       isConnecting: false,
-      clientId: "",
-      isManager: false,
-      clients: [] as {
-        id: string;
-        username: string;
-        isManager: boolean;
-      }[],
+      // clientId: "",
+      // isManager: false,
+      // clients: [] as {
+      //   id: string;
+      //   username: string;
+      //   isManager: boolean;
+      // }[],
       shouldKeepConnection: false,
 
       async connect() {
@@ -33,25 +35,22 @@ export const RoomService = createService(
 
         if (!global.window) return;
 
-        const room = await service.socketService.emit(
+        const data = await service.socketService.emit(
           "connect-room",
           service.id,
-          service.username,
           service.managerSecret
         );
 
         service.isConnecting = false;
 
-        if (room.error) {
-          console.error(room.error);
+        if (data.error) {
+          console.error(data.error);
           service.isConnected = false;
         } else {
-          service.clientId = room.id;
-          service.clients = room.clients;
-          service.isManager = room.isManager;
-          service.username = room.username;
+          service.room = data.room;
+          service.client = data.client;
           service.isConnected = true;
-          service.editorService.value = room.text;
+          service.editorService.value = service.room.text;
           service.editorService.makeAnchors();
           service.connectHotPromise.resolve();
         }
@@ -72,35 +71,28 @@ export const RoomService = createService(
         service.connectHotPromise.reinit();
       },
       onAddClient: (client) => {
-        service.clients.push(client);
+        service.room.clients[client.id] = client;
       },
       onRemoveClient: (client) => {
-        service.clients.splice(
-          service.clients.findIndex((c) => c.id === client.id),
-          1
-        );
+        delete service.room.clients[client.id];
       },
       onChangeClient: (client) => {
-        service.clients.splice(
-          service.clients.findIndex((c) => c.id === client.id),
-          1,
-          client
-        );
+        service.room.clients[client.id] = client;
       },
-      async changeClient(username: string) {
-        const result = await service.socketService.emit(
-          "change-client",
-          service.id,
-          {
-            username,
-          }
-        );
-        if (result.error) {
-          console.error(result.error);
-        } else {
-          service.username = result.username;
-        }
-      },
+      // async changeClient(username: string) {
+      //   const result = await service.socketService.emit(
+      //     "change-client",
+      //     service.id,
+      //     {
+      //       username,
+      //     }
+      //   );
+      //   if (result.error) {
+      //     console.error(result.error);
+      //   } else {
+      //     service.username = result.username;
+      //   }
+      // },
       execute: async () => {
         return await service.socketService.emit("execute-room", service.id);
       },

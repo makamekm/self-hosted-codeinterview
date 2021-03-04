@@ -1,13 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import * as jwt from "jsonwebtoken";
-
-export interface GoogleUser {
-  email: string;
-  firstName: string;
-  lastName: string;
-  picture: string;
-  accessToken: string;
-}
+import { UserDto } from "./dto/user.dto";
 
 @Injectable()
 export class WsJwtGuard implements CanActivate {
@@ -21,7 +14,7 @@ export class WsJwtGuard implements CanActivate {
         const jwtPayload = jwt.verify(
           authToken,
           process.env.JWT_SECRET
-        ) as GoogleUser;
+        ) as UserDto;
         // const user: GoogleUser = await this.authService.validateUser(jwtPayload);
         // context.switchToWs().getData().user = user;
         client.user = jwtPayload;
