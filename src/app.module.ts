@@ -8,15 +8,15 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import { PUBLIC_FOLDER } from "@env/config";
 import { NextMiddleware, NextModule } from "@nestpress/next";
 import * as redisStore from "cache-manager-redis-store";
-import { NextController } from "./next.controller";
-import { FrontendMiddleware } from "./frontend.middleware";
+import { NextController } from "./controllers/next.controller";
+import { FrontendMiddleware } from "./middlewares/frontend.middleware";
 import { ScheduleModule } from "@nestjs/schedule";
 import { RedisModule } from "nestjs-redis";
-import { AppController } from "./app.controller";
-import { AppGateway } from "./app-gateway.service";
-import { CodeRunnerService } from "./code-runner.provider";
-import { GoogleStrategy } from "./google.strategy";
-import { GoogleController } from "./google.controller";
+import { AppController } from "./controllers/app.controller";
+import { AppGateway } from "./providers/app-gateway.service";
+import { CodeRunnerService } from "./providers/code-runner.provider";
+import { GoogleStrategy } from "./strategies/google.strategy";
+import { GoogleController } from "./controllers/google.controller";
 
 @Module({
   imports: [

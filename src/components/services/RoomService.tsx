@@ -1,7 +1,7 @@
 import React from "react";
 import { createService } from "react-service-provider";
 import { useLocalObservable } from "mobx-react";
-import { makeHotPromise } from "~/hot-promise.util";
+import { makeHotPromise } from "~/utils/hot-promise.util";
 import { SocketService } from "./SocketService";
 import { EditorService } from "./EditorService";
 import { RoomClientDto, RoomDto } from "~/dto/room.dto";

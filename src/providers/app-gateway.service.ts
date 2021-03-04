@@ -14,10 +14,10 @@ import { Cache } from "cache-manager";
 import { RedisService } from "nestjs-redis";
 import { debounce } from "ts-debounce";
 import { CodeRunnerService } from "./code-runner.provider";
-import { WsJwtGuard } from "./ws-jwt-guard";
-import { UserDto } from "./dto/user.dto";
-import { RoomClientDto, RoomDto } from "./dto/room.dto";
-import { ErrorDto } from "./dto/error.dto";
+import { WsJwtGuard } from "~/guards/ws-jwt-guard";
+import { UserDto } from "~/dto/user.dto";
+import { RoomClientDto, RoomDto } from "~/dto/room.dto";
+import { ErrorDto } from "~/dto/error.dto";
 
 class RoomClient implements RoomClientDto {
   id: string = "";

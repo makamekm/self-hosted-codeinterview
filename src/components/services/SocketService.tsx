@@ -3,7 +3,7 @@ import { createService } from "react-service-provider";
 import { useLocalObservable } from "mobx-react";
 import io from "socket.io-client";
 import { SOCKET_SERVER } from "@env/config";
-import { makeHotPromise } from "~/hot-promise.util";
+import { makeHotPromise } from "~/utils/hot-promise.util";
 import Cookies from "js-cookie";
 
 export const SocketService = createService(

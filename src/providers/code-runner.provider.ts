@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 import path from "path";
 import { spawn, exec } from "child_process";
-import { makeHotPromise } from "./hot-promise.util";
+import { makeHotPromise } from "~/utils/hot-promise.util";
 
 @Injectable()
 export class CodeRunnerService {
