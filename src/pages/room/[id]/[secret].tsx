@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import dynamic from "next/dynamic";
 import React, { useContext } from "react";
 import { useRouter } from "next/router";
-import { RoomService } from "~/components/services/RoomService";
+import { RoomService } from "~/services/RoomService";
 import { Tabs, TabTypes } from "~/components/Tabs";
 // import  from "react-codemirror2";
 

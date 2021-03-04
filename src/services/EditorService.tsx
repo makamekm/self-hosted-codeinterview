@@ -10,7 +10,7 @@ import {
   clearAllSelectionClient,
   removeIdSelectionClient,
   setAnchorSelectionClient,
-} from "../EditorSelection";
+} from "../components/EditorSelection";
 import { TerminalService } from "./TerminalService";
 
 export const EditorService = createService(

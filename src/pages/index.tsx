@@ -1,5 +1,5 @@
 import React from "react";
-import { CreateRoomService } from "~/components/services/CreateRoomService";
+import { CreateRoomService } from "~/services/CreateRoomService";
 
 const Home: React.FC = () => {
   const service = React.useContext(CreateRoomService);

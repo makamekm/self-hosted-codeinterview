@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import classNames from "classnames";
 import React, { useContext } from "react";
-import { EditorService } from "./services/EditorService";
+import { EditorService } from "~/services/EditorService";
 import useResizeObserver from "use-resize-observer";
 import AceEditor from "react-ace";
 

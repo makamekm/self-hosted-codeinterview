@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import React, { useContext } from "react";
 import { UnControlled as CodeMirror } from "react-codemirror2";
-import { EditorService } from "./services/EditorService";
+import { EditorService } from "~/services/EditorService";
 import useResizeObserver from "use-resize-observer";
 
 import "codemirror/lib/codemirror.css";

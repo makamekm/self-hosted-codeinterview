@@ -4,7 +4,7 @@ import ReactTerminal, {
   ReactThemes,
   ReactOutputRenderers,
 } from "react-terminal-component";
-import { OutputType, TerminalService } from "./services/TerminalService";
+import { OutputType, TerminalService } from "~/services/TerminalService";
 
 function NewlineText(props) {
   const text = props.text;

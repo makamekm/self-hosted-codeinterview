@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { observer, useLocalObservable } from "mobx-react";
 import { useContext } from "react";
-import { RoomService } from "./services/RoomService";
+import { RoomService } from "~/services/RoomService";
 import { UserPanel } from "./UserPanel";
 
 export enum TabTypes {

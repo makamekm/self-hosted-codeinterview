@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { observer, useLocalObservable } from "mobx-react";
 import { useContext, useEffect, useRef } from "react";
-import { UserService } from "./services/UserService";
+import { UserService } from "~/services/UserService";
 
 export enum TabTypes {
   Terminal,
