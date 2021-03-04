@@ -2,6 +2,7 @@ import classNames from "classnames";
 import { observer, useLocalObservable } from "mobx-react";
 import { useContext } from "react";
 import { RoomService } from "./services/RoomService";
+import { UserPanel } from "./UserPanel";
 
 export enum TabTypes {
   Terminal,
@@ -30,7 +31,7 @@ export const Tabs = observer(
     }));
     return (
       <>
-        <div className="border-b border-gray-700">
+        <div className="border-b border-gray-700 flex flex-row justify-between items-center">
           <ul className="flex cursor-pointer">
             <li
               onClick={state.onClickTerminal}
@@ -75,6 +76,9 @@ export const Tabs = observer(
               Settings
             </li>
           </ul>
+          <div>
+            <UserPanel />
+          </div>
         </div>
         {render(state.currentTab)}
       </>

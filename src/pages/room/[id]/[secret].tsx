@@ -16,21 +16,21 @@ const Terminal = dynamic(() => import("~/components/Terminal"), {
 
 const Page: React.FC = observer(() => {
   const router = useRouter();
-  const service = useContext(RoomService);
+  const serviceRoom = useContext(RoomService);
 
   React.useEffect(() => {
     return () => {
-      service.shouldKeepConnection = false;
+      serviceRoom.shouldKeepConnection = false;
     };
   });
 
   React.useEffect(() => {
-    service.id = router.query.id as string;
-    service.managerSecret = router.query.secret as string;
+    serviceRoom.id = router.query.id as string;
+    serviceRoom.managerSecret = router.query.secret as string;
 
-    service.shouldKeepConnection = true;
-    service.connect();
-  }, [service, service.connect, router.query.id, router.query.secret]);
+    serviceRoom.shouldKeepConnection = true;
+    serviceRoom.connect();
+  }, [serviceRoom, router.query.id, router.query.secret]);
 
   return (
     <div className="h-screen w-full max-h-screen max-w-screen flex flex-row justify-items-stretch items-stretch">

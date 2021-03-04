@@ -24,13 +24,13 @@ export const UserService = createService(
         });
       },
       logout() {
-        Cookies.remove("session", { path: "" });
-        Cookies.remove("user_info", { path: "" });
+        Cookies.remove("session");
+        Cookies.remove("user_info");
         window.location.reload();
       },
       readUser() {
         const user = Cookies.get("user_info");
-        service.user = user;
+        service.user = user ? JSON.parse(user) : null;
       },
     }));
     return service;
@@ -39,7 +39,9 @@ export const UserService = createService(
     service.socketService = React.useContext(SocketService);
     service.router = useRouter();
     React.useEffect(() => {
-      service.readUser();
+      if (global.window) {
+        service.readUser();
+      }
     }, [service]);
   }
 );
