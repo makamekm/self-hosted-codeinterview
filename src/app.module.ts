@@ -15,6 +15,8 @@ import { RedisModule } from "nestjs-redis";
 import { AppController } from "./app.controller";
 import { AppGateway } from "./app-gateway.service";
 import { CodeRunnerService } from "./code-runner.provider";
+import { GoogleStrategy } from "./google.strategy";
+import { GoogleController } from "./google.controller";
 
 @Module({
   imports: [
@@ -38,8 +40,8 @@ import { CodeRunnerService } from "./code-runner.provider";
     }),
     ScheduleModule.forRoot(),
   ],
-  controllers: [NextController, AppController],
-  providers: [AppGateway, CodeRunnerService],
+  controllers: [NextController, AppController, GoogleController],
+  providers: [AppGateway, CodeRunnerService, GoogleStrategy],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

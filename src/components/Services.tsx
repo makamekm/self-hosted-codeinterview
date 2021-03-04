@@ -3,6 +3,7 @@ import { EditorService } from "./services/EditorService";
 import { RoomService } from "./services/RoomService";
 import { CreateRoomService } from "./services/CreateRoomService";
 import { TerminalService } from "./services/TerminalService";
+import { UserService } from "./services/UserService";
 
 export const Services = [
   SocketService,
@@ -10,4 +11,5 @@ export const Services = [
   RoomService,
   CreateRoomService,
   TerminalService,
+  UserService,
 ];

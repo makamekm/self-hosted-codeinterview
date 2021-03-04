@@ -6,7 +6,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from "@nestjs/websockets";
-import { CACHE_MANAGER, Inject, Logger } from "@nestjs/common";
+import { CACHE_MANAGER, Inject, Logger, UseGuards } from "@nestjs/common";
 import { Socket, Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
 import rug from "random-username-generator";
@@ -14,6 +14,7 @@ import { Cache } from "cache-manager";
 import { RedisService } from "nestjs-redis";
 import { debounce } from "ts-debounce";
 import { CodeRunnerService } from "./code-runner.provider";
+import { WsJwtGuard, GoogleUser } from "./ws-jwt-guard";
 
 interface RoomClientDto {
   id: string;
@@ -79,7 +80,19 @@ class Room {
   }
 }
 
-@WebSocketGateway()
+@WebSocketGateway({
+  handlePreflightRequest: (req, res) => {
+    const headers = {
+      "Access-Control-Allow-Headers": "Content-Type, authorization, x-token",
+      "Access-Control-Allow-Origin": req.headers.origin,
+      "Access-Control-Allow-Credentials": true,
+      "Access-Control-Max-Age": "1728000",
+      "Content-Length": "0",
+    };
+    res.writeHead(200, headers);
+    res.end();
+  },
+} as any)
 export class AppGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
@@ -133,6 +146,10 @@ export class AppGateway
       );
     }
   }
+
+  // googleLogin(user: GoogleUser) {
+  //   return user;
+  // }
 
   @SubscribeMessage("create-room")
   async makeRoom(
@@ -257,10 +274,13 @@ export class AppGateway
           result.time / 1000
         }s with exit code ${result.code}`
       );
+
       if (result.data) {
         room.send("room-end-code-data", `Output:\n${result.data}`);
-      } else if (result.err) {
-        room.send("room-end-code-err", `Output:\n${result.err}`);
+      }
+
+      if (result.err) {
+        room.send("room-end-code-err", `Error Output:\n${result.err}`);
       }
 
       this.logger.log(
@@ -280,9 +300,10 @@ export class AppGateway
     }
   }
 
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage("connect-room")
   async connectRoom(
-    client: Socket,
+    client: Socket & { user: GoogleUser },
     [roomId, username, managerSecret]: [
       roomId: string,
       username: string,
@@ -296,7 +317,10 @@ export class AppGateway
       })
     | ErrorDto
   > {
-    username = username || rug.generate();
+    username =
+      username ||
+      (client.user && client.user.firstName + " " + client.user.lastName) ||
+      rug.generate();
 
     if (!this.rooms[roomId]) {
       await this.restoreRoom(roomId);

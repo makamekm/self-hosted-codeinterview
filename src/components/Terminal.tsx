@@ -40,10 +40,6 @@ const GreenOutput = ({ content }) => (
 const Terminal: React.FC = observer(() => {
   const service = React.useContext(TerminalService);
 
-  React.useEffect(() => {
-    service.addOutput("The console output will appear here.");
-  }, [service]);
-
   return (
     <>
       <ReactTerminal

@@ -9,6 +9,7 @@ import { makeHotPromise } from "./hot-promise.util";
 export class CodeRunnerService {
   path = path.resolve("./"); // TODO: extract to ENV
   timeout_value = 10; // TODO: extract to ENV
+  limit_data = 1000;
 
   async spawn(
     onData: (data: string, error: string, fullData: string) => void,
@@ -84,6 +85,32 @@ export class CodeRunnerService {
     let err = "";
     let time = +new Date();
 
+    const addData = (chunk) => {
+      if (data.length < this.limit_data) {
+        data += chunk;
+        if (data.length >= this.limit_data) {
+          data =
+            data.substr(0, this.limit_data) +
+            `...\n[exceded the limit of ${this.limit_data} chars]`;
+        } else {
+          data += chunk;
+        }
+      }
+    };
+
+    const addErr = (chunk) => {
+      if (err.length < this.limit_data) {
+        err += chunk;
+        if (err.length >= this.limit_data) {
+          err =
+            err.substr(0, this.limit_data) +
+            `...\n[exceded the limit of ${this.limit_data} chars]`;
+        } else {
+          err += chunk;
+        }
+      }
+    };
+
     const child = spawn(
       "sudo",
       [
@@ -101,13 +128,11 @@ export class CodeRunnerService {
     );
     child.stdout.setEncoding("utf8");
     child.stdout.on("data", (chunk) => {
-      chunk = chunk.toString();
-      data += chunk;
+      addData(chunk.toString());
     });
     child.stderr.setEncoding("utf8");
     child.stderr.on("data", (chunk) => {
-      chunk = chunk.toString();
-      err += chunk;
+      addErr(chunk.toString());
     });
     child.on("close", (code) => {
       hotPromise.resolve({

@@ -65,5 +65,9 @@ export const TerminalService = createService(
     service.socketService.useOn("room-end-code", service.onEndCode);
     service.socketService.useOn("room-end-code-data", service.onEndDataCode);
     service.socketService.useOn("room-end-code-err", service.onEndErrCode);
+
+    React.useEffect(() => {
+      service.addOutput("The console output will appear here.");
+    }, [service]);
   }
 );

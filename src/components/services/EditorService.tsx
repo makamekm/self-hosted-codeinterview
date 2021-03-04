@@ -53,7 +53,6 @@ export const EditorService = createService(
       },
       onEditorSelectionData: (clientId, selections: AceAnchor) => {
         if (!service.editor) return;
-        console.log(clientId, selections);
         setAnchorSelectionClient(service.editor, clientId, selections);
       },
       onChange: async (text, event) => {

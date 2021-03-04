@@ -4,6 +4,7 @@ import { useLocalObservable } from "mobx-react";
 import io from "socket.io-client";
 import { SOCKET_SERVER } from "@env/config";
 import { makeHotPromise } from "~/hot-promise.util";
+import Cookies from "js-cookie";
 
 export const SocketService = createService(
   () => {
@@ -23,7 +24,19 @@ export const SocketService = createService(
           service.socket.disconnect();
           service.socket = null;
         }
-        service.socket = io(SOCKET_SERVER);
+        service.socket = io(SOCKET_SERVER, {
+          // extraHeaders: {
+          //   Authorization: "Bearer authorization_token_here"
+          // }
+          transportOptions: {
+            polling: {
+              extraHeaders: {
+                Authorization: Cookies.get("session"),
+                // Session: document.cookie,
+              },
+            },
+          },
+        });
         service.socket.on("connect", () => {
           service.isConnected = true;
           // await service.initPromise;
