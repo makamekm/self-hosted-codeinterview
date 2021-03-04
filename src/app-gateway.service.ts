@@ -15,6 +15,16 @@ import { RedisService } from "nestjs-redis";
 import { debounce } from "ts-debounce";
 import { CodeRunnerService } from "./code-runner.provider";
 
+interface RoomClientDto {
+  id: string;
+  username: string;
+  isManager: boolean;
+}
+
+interface ErrorDto {
+  error: string;
+}
+
 class RoomClient {
   id: string = "";
   socket: Socket;
@@ -132,9 +142,7 @@ export class AppGateway
         id: string;
         managerSecret: string;
       }
-    | {
-        error: string;
-      }
+    | ErrorDto
   > {
     const id = uuidv4();
     const managerSecret = uuidv4();
@@ -155,6 +163,53 @@ export class AppGateway
     };
   }
 
+  @SubscribeMessage("change-client")
+  async changeClient(
+    client: Socket,
+    [roomId, data]: [
+      roomId: string,
+      data: {
+        username: string;
+      }
+    ]
+  ): Promise<RoomClientDto | ErrorDto> {
+    if (!this.rooms[roomId]) {
+      await this.restoreRoom(roomId);
+    }
+
+    const room = this.rooms[roomId];
+
+    if (!room) {
+      return {
+        error: "The room has not been found!",
+      };
+    }
+
+    const roomClient = room.clients[client.id];
+
+    if (!roomClient) {
+      return {
+        error: "The room client has not been found!",
+      };
+    }
+
+    roomClient.username = data.username;
+
+    let clientData = {
+      id: roomClient.id,
+      username: roomClient.username,
+      isManager: roomClient.isManager,
+    };
+
+    room.sendExcept(roomClient, "room-change-client", clientData);
+
+    return {
+      id: roomClient.id,
+      username: roomClient.username,
+      isManager: roomClient.isManager,
+    };
+  }
+
   @SubscribeMessage("execute-room")
   async executeRoom(
     client: Socket,
@@ -164,9 +219,7 @@ export class AppGateway
         data: string;
         err: string;
       }
-    | {
-        error: string;
-      }
+    | ErrorDto
   > {
     if (!this.rooms[roomId]) {
       await this.restoreRoom(roomId);
@@ -180,13 +233,51 @@ export class AppGateway
       };
     }
 
-    this.logger.log(`Room is being executed: ${roomId} by ${client.id}`);
+    const roomClient = room.clients[client.id];
 
-    let result = await this.codeRunnerService.execute(room.text);
+    if (!roomClient) {
+      return {
+        error: "The room client has not been found!",
+      };
+    }
 
-    this.logger.log(`Room has been executed: ${roomId} by ${client.id}`);
+    room.send(
+      "room-start-code",
+      `Code is being executed by ${roomClient.username}`
+    );
 
-    return result;
+    this.logger.log(`Code is being executed: ${roomId} by ${client.id}`);
+
+    try {
+      let result = await this.codeRunnerService.execute(room.text);
+
+      room.send(
+        "room-end-code",
+        `Code has been executed by ${roomClient.username} within ${
+          result.time / 1000
+        }s with exit code ${result.code}`
+      );
+      if (result.data) {
+        room.send("room-end-code-data", `Output:\n${result.data}`);
+      } else if (result.err) {
+        room.send("room-end-code-err", `Output:\n${result.err}`);
+      }
+
+      this.logger.log(
+        `Code has been executed: ${roomId} within ${result.time} by ${client.id}`
+      );
+
+      return result;
+    } catch (error) {
+      room.send("room-end-code-err", `Execution has failed die to:\n${error}`);
+
+      this.logger.log(`Code execution has failed: ${roomId} by ${client.id}`);
+      this.logger.log(error);
+
+      return {
+        error: error.message,
+      };
+    }
   }
 
   @SubscribeMessage("connect-room")
@@ -198,21 +289,12 @@ export class AppGateway
       managerSecret: string
     ]
   ): Promise<
-    | {
-        id: string;
+    | (RoomClientDto & {
         roomId: string;
-        username: string;
-        isManager: boolean;
         text: string;
-        clients: {
-          username: string;
-          id: string;
-          isManager: boolean;
-        }[];
-      }
-    | {
-        error: string;
-      }
+        clients: RoomClientDto[];
+      })
+    | ErrorDto
   > {
     username = username || rug.generate();
 
@@ -271,9 +353,7 @@ export class AppGateway
   async handleEditor(
     client: Socket,
     [roomId, ...args]: any[]
-  ): Promise<void | {
-    error: string;
-  }> {
+  ): Promise<void | ErrorDto> {
     const room = this.rooms[roomId];
 
     if (!room) {
@@ -297,9 +377,7 @@ export class AppGateway
   async handleEditorSalection(
     client: Socket,
     [roomId, ...args]: any[]
-  ): Promise<void | {
-    error: string;
-  }> {
+  ): Promise<void | ErrorDto> {
     const room = this.rooms[roomId];
 
     if (!room) {
@@ -323,9 +401,7 @@ export class AppGateway
   async handleEditorState(
     client: Socket,
     [roomId, text]: any[]
-  ): Promise<void | {
-    error: string;
-  }> {
+  ): Promise<void | ErrorDto> {
     const room = this.rooms[roomId];
 
     if (!room) {

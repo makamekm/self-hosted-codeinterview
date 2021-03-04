@@ -93,15 +93,15 @@ export const EditorService = createService(
         service.isExecuting = true;
         try {
           service.terminalService.addOutput("Executing...");
-          const { data, err, code } = await service.roomService.execute();
-          service.terminalService.addOutput(
-            `Finished running with status code: ${code}\nOutput:`
-          );
-          if (data) {
-            service.terminalService.addOutput(data);
-          } else if (data) {
-            service.terminalService.addOutput(err);
-          }
+          await service.roomService.execute();
+          // service.terminalService.addOutput(
+          //   `Finished running with status code: ${code}\nOutput:`
+          // );
+          // if (data) {
+          //   service.terminalService.addOutput(data);
+          // } else if (data) {
+          //   service.terminalService.addOutput(err);
+          // }
         } catch (error) {
           console.error(error);
         } finally {

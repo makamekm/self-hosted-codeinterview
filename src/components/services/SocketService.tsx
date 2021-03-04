@@ -33,7 +33,6 @@ export const SocketService = createService(
           service.isConnected = false;
           service.initHotPromise.reinit();
         });
-        console.log(service.socket);
       },
       emit: async (type: string, ...args): Promise<any> => {
         await service.initHotPromise.promise;

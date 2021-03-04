@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import React, { useContext } from "react";
 import { useRouter } from "next/router";
 import { RoomService } from "~/components/services/RoomService";
+import { Tabs } from "~/components/Tabs";
 // import  from "react-codemirror2";
 
 const Editor = dynamic(() => import("~/components/Editor"), {
@@ -38,19 +39,7 @@ const Page: React.FC = observer(() => {
       </div>
       <div className="w-1/2 border-l border-gray-700">
         <div className="relative min-w-full max-w-full min-h-full max-h-full flex flex-col">
-          <div className="border-b border-gray-700">
-            <ul className="flex cursor-pointer">
-              <li className="py-2 px-6 rounded-t-lg border-b-2 border-gray-300">
-                Terminal
-              </li>
-              <li className="py-2 px-6 rounded-t-lg text-gray-500 border-b-2 border-transparent">
-                Questionarie
-              </li>
-              <li className="py-2 px-6 rounded-t-lg text-gray-500 border-b-2 border-transparent">
-                Private Chat
-              </li>
-            </ul>
-          </div>
+          <Tabs />
           <div className="relative flex-1 flex flex-col min-h-full max-h-full">
             <Terminal />
           </div>

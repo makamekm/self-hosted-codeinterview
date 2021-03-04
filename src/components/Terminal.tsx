@@ -4,17 +4,35 @@ import ReactTerminal, {
   ReactThemes,
   ReactOutputRenderers,
 } from "react-terminal-component";
-import { PAPER_TYPE, TerminalService } from "./services/TerminalService";
+import { OutputType, TerminalService } from "./services/TerminalService";
 
 function NewlineText(props) {
   const text = props.text;
-  const newText = text.split("\n").map((str) => <div>{str}</div>);
+  const newText = text.split("\n").map((str, i) => <div key={i}>{str}</div>);
 
   return newText;
 }
 
+const NotificationOutput = ({ content }) => (
+  <div className="px-1 py-2 text-gray-100">
+    <NewlineText text={content.body} />
+  </div>
+);
+
 const DataOutput = ({ content }) => (
   <div className="px-1 py-2 text-gray-300">
+    <NewlineText text={content.body} />
+  </div>
+);
+
+const ErrorOutput = ({ content }) => (
+  <div className="px-1 py-2 text-red-500">
+    <NewlineText text={content.body} />
+  </div>
+);
+
+const GreenOutput = ({ content }) => (
+  <div className="px-1 py-2 text-green-500">
     <NewlineText text={content.body} />
   </div>
 );
@@ -23,7 +41,7 @@ const Terminal: React.FC = observer(() => {
   const service = React.useContext(TerminalService);
 
   React.useEffect(() => {
-    service.addOutput("test test");
+    service.addOutput("The console output will appear here.");
   }, [service]);
 
   return (
@@ -34,7 +52,10 @@ const Terminal: React.FC = observer(() => {
         acceptInput={false}
         outputRenderers={{
           ...ReactOutputRenderers,
-          [PAPER_TYPE]: DataOutput,
+          [OutputType.NOTIFICATION]: NotificationOutput,
+          [OutputType.LOG]: DataOutput,
+          [OutputType.ERROR]: ErrorOutput,
+          [OutputType.GREEN]: GreenOutput,
         }}
         emulatorState={service.emulatorState}
         inputStr={service.inputStr}

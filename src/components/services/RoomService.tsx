@@ -80,12 +80,31 @@ export const RoomService = createService(
           1
         );
       },
+      onChangeClient: (client) => {
+        service.clients.splice(
+          service.clients.findIndex((c) => c.id === client.id),
+          1,
+          client
+        );
+      },
+      async changeClient(username: string) {
+        const result = await service.socketService.emit(
+          "change-client",
+          service.id,
+          {
+            username,
+          }
+        );
+        if (result.error) {
+          console.error(result.error);
+        } else {
+          service.username = result.username;
+        }
+      },
       execute: async () => {
         return await service.socketService.emit("execute-room", service.id);
       },
     }));
-    console.log(service);
-
     return service;
   },
   (service) => {
@@ -95,5 +114,6 @@ export const RoomService = createService(
     service.socketService.useOn("disconnect", service.onDisconnect);
     service.socketService.useOn("room-add-client", service.onAddClient);
     service.socketService.useOn("room-remove-client", service.onRemoveClient);
+    service.socketService.useOn("room-change-client", service.onChangeClient);
   }
 );

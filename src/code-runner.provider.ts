@@ -7,9 +7,8 @@ import { makeHotPromise } from "./hot-promise.util";
 
 @Injectable()
 export class CodeRunnerService {
-  path = path.resolve("./"); //current working path
-  vm_name = "node"; //name of virtual machine that we want to execute
-  timeout_value = 10; //Timeout Value, In Seconds
+  path = path.resolve("./"); // TODO: extract to ENV
+  timeout_value = 10; // TODO: extract to ENV
 
   async spawn(
     onData: (data: string, error: string, fullData: string) => void,
@@ -73,6 +72,7 @@ export class CodeRunnerService {
       data: string;
       err: string;
       code: number;
+      time: number;
     }>();
     const folder = "temp/" + uuidv4();
     const fileName = "file.js";
@@ -82,6 +82,7 @@ export class CodeRunnerService {
 
     let data = "";
     let err = "";
+    let time = +new Date();
 
     const child = spawn(
       "sudo",
@@ -113,6 +114,7 @@ export class CodeRunnerService {
         data,
         err,
         code,
+        time: +new Date() - time,
       });
     });
     let result = await hotPromise.promise;
