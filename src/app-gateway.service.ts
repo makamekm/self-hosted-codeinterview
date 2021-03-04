@@ -313,9 +313,7 @@ export class AppGateway
       }
     | ErrorDto
   > {
-    const username =
-      (client.user && client.user.firstName + " " + client.user.lastName) ||
-      rug.generate();
+    const username = (client.user && client.user.username) || rug.generate();
 
     if (!this.rooms[roomId]) {
       await this.restoreRoom(roomId);

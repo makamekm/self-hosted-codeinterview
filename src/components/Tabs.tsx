@@ -49,7 +49,7 @@ export const Tabs = observer(
                 "border-gray-300": state.currentTab === TabTypes.Questionarie,
                 "border-transparent text-gray-500":
                   state.currentTab !== TabTypes.Questionarie,
-                hidden: !roomService.room?.isManager,
+                hidden: !roomService.client?.isManager,
               })}
             >
               Questionarie
@@ -60,7 +60,7 @@ export const Tabs = observer(
                 "border-gray-300": state.currentTab === TabTypes.ManagerChat,
                 "border-transparent text-gray-500":
                   state.currentTab !== TabTypes.ManagerChat,
-                hidden: !roomService.room?.isManager,
+                hidden: !roomService.client?.isManager,
               })}
             >
               Manager's Chat
