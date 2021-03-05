@@ -42,7 +42,16 @@ export const QuestionarieReview = observer(() => {
             <div className="w-full mt-2" key={section.id}>
               <div className="border-gray-600 border rounded-sm">
                 <div className="px-2 py-2 w-full text-center font-semibold text-base hover:bg-gray-500 focus:bg-gray-500 focus:outline-none rounded-sm transition-colors duration-200">
-                  {section.name}
+                  {section.name} (
+                  {section.questions.reduce((acc, q) => {
+                    return (
+                      acc +
+                      (q.grade == null || q.grade === GradeDto.NotAssesed
+                        ? 0
+                        : 1)
+                    );
+                  }, 0)}{" "}
+                  / {section.questions.length})
                 </div>
                 <div className="px-2 py-2 border-gray-600 border-t flex flex-col space-y-4">
                   {!!section.description && <div>{section.description}</div>}
