@@ -88,11 +88,11 @@ export const QuestionarieSelectPanel = observer(() => {
           <div className="w-1/4">
             <Listbox
               className="w-full"
-              value={String(questionnaireService.searchQuestionarieLanguage)}
+              value={questionnaireService.searchQuestionarieLanguage}
               onChange={onChangeSearchLanguage}
             >
               {Object.keys(LanguageName).map((language) => (
-                <ListboxOption key={language} value={String(language)}>
+                <ListboxOption key={language} value={language}>
                   {LanguageName[language]}
                 </ListboxOption>
               ))}

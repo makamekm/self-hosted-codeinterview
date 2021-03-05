@@ -39,7 +39,7 @@ export const QuestionnaireService = createService(
           ...questionnaireList
             .filter(
               (q) =>
-                q.language === Number(service.searchQuestionarieLanguage) &&
+                q.language === service.searchQuestionarieLanguage &&
                 (!service.searchQuestionarieName ||
                   q.name.includes(service.searchQuestionarieName))
             )

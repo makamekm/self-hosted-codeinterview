@@ -1,7 +1,7 @@
 export enum Language {
-  TypeScript,
-  JavaScript,
-  Java,
+  TypeScript = "TypeScript",
+  JavaScript = "JavaScript",
+  Java = "Java",
 }
 
 export const LanguageName = {

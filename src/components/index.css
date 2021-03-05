@@ -29,6 +29,11 @@
   white-space: pre-line !important;
 }
 
+[data-reach-dialog-content] {
+  background-color: #282a36 !important;
+  color: #ddd !important;
+}
+
 .loader {
   @apply flex flex-row justify-center items-center;
 }

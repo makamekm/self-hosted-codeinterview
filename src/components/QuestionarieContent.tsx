@@ -47,12 +47,12 @@ export const QuestionarieContent = observer(() => {
               <AccordionButton className="px-2 py-2 w-full text-center font-semibold text-base hover:bg-gray-500 focus:bg-gray-500 focus:outline-none rounded-sm transition-colors duration-200">
                 {section.name}
               </AccordionButton>
-              <AccordionPanel className="px-2 py-2 border-gray-600 border-t">
+              <AccordionPanel className="px-2 py-2 border-gray-600 border-t flex flex-col space-y-4">
                 {!!section.description && <div>{section.description}</div>}
 
-                <Accordion className="w-full">
+                <Accordion className="w-full flex flex-col space-y-4">
                   {section.questions.map((question) => (
-                    <AccordionItem className="w-full mt-4" key={question.id}>
+                    <AccordionItem className="w-full" key={question.id}>
                       <div className="rounded-sm">
                         <AccordionButton className="flex flex-row justify-start items-center px-2 py-2 w-full text-left hover:bg-gray-500 focus:bg-gray-500 focus:outline-none rounded-sm transition-colors duration-200">
                           <div
@@ -73,21 +73,19 @@ export const QuestionarieContent = observer(() => {
                             {LanguageName[question.language]}
                           </div>
                         </AccordionButton>
-                        <AccordionPanel className="px-2 py-2">
-                          <div className="flex-1 mb-2">
-                            {!!question.description && (
-                              <div>{question.description}</div>
-                            )}
-                          </div>
-                          <div className="flex flex-row justify-start items-center w-full mt-1">
+                        <AccordionPanel className="px-2 py-2 flex flex-col space-y-4">
+                          {!!question.description && (
+                            <div>{question.description}</div>
+                          )}
+                          <div className="flex flex-row justify-start items-center w-full">
                             <Listbox
                               className="mr-6"
                               value={question.grade || GradeDto.NotAssesed}
                               onChange={onChangeGrade(question)}
                             >
-                              {Object.keys(GradeNameDto).map((grage) => (
-                                <ListboxOption key={grage} value={grage}>
-                                  {GradeNameDto[grage]}
+                              {Object.keys(GradeNameDto).map((grade) => (
+                                <ListboxOption key={grade} value={grade}>
+                                  {GradeNameDto[grade]}
                                 </ListboxOption>
                               ))}
                             </Listbox>
