@@ -47,7 +47,7 @@ export const QuestionarieContent = observer(() => {
               <AccordionButton className="px-2 py-2 w-full text-center font-semibold text-base hover:bg-gray-500 focus:bg-gray-500 focus:outline-none rounded-sm transition-colors duration-200">
                 {section.name}
               </AccordionButton>
-              <AccordionPanel className="px-2 py-2 border-gray-600 border-t flex flex-col space-y-4">
+              <AccordionPanel className="px-2 py-2 border-gray-600 border-t space-y-4">
                 {!!section.description && <div>{section.description}</div>}
 
                 <Accordion className="w-full flex flex-col space-y-4">
@@ -73,7 +73,7 @@ export const QuestionarieContent = observer(() => {
                             {LanguageName[question.language]}
                           </div>
                         </AccordionButton>
-                        <AccordionPanel className="px-2 py-2 flex flex-col space-y-4">
+                        <AccordionPanel className="px-2 py-2 space-y-4">
                           {!!question.description && (
                             <div>{question.description}</div>
                           )}
