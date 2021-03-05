@@ -5,12 +5,16 @@ import { makeHotPromise } from "~/utils/hot-promise.util";
 import { SocketService } from "./SocketService";
 import { EditorService } from "./EditorService";
 import { RoomClientDto, RoomDto } from "~/dto/room.dto";
+import { QuestionnaireService } from "./QuestionnaireService";
 
 export const RoomService = createService(
   () => {
     const service = useLocalObservable(() => ({
       socketService: null as ReturnType<typeof SocketService.useState>,
       editorService: null as ReturnType<typeof EditorService.useState>,
+      questionnaireService: null as ReturnType<
+        typeof QuestionnaireService.useState
+      >,
       connectHotPromise: makeHotPromise(),
       room: null as RoomDto,
       client: null as RoomClientDto,
@@ -49,6 +53,7 @@ export const RoomService = createService(
         } else {
           service.room = data.room;
           service.client = data.client;
+          service.questionnaire = data.questionnaire || null;
           service.isConnected = true;
           service.editorService.value = service.room.text;
           service.editorService.makeAnchors();
@@ -102,6 +107,7 @@ export const RoomService = createService(
   (service) => {
     service.socketService = React.useContext(SocketService);
     service.editorService = React.useContext(EditorService);
+    service.questionnaireService = React.useContext(QuestionnaireService);
     service.socketService.useOn("connect", service.onConnect);
     service.socketService.useOn("disconnect", service.onDisconnect);
     service.socketService.useOn("room-add-client", service.onAddClient);

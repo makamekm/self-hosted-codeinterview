@@ -6,11 +6,13 @@ import { SocketService } from "./SocketService";
 import { Language } from "~/dto/language.dto";
 import { questionnaireList, questionnairies } from "~/demo/questionnaire";
 import { ResultQuestionnaireDto } from "~/dto/result.questionnaire.dto";
+import { RoomService } from "./RoomService";
 
 export const QuestionnaireService = createService(
   () => {
     const service = useLocalObservable(() => ({
       socketService: null as ReturnType<typeof SocketService.useState>,
+      roomService: null as ReturnType<typeof RoomService.useState>,
       questionnaire: null as ResultQuestionnaireDto,
       questionnaireList: [] as {
         id: string;
@@ -23,12 +25,22 @@ export const QuestionnaireService = createService(
       _debounceSearch: null as () => void,
       isLoadingList: false,
       isLoadingQuestionaire: false,
+      async save() {
+        await service.roomService.emit(
+          "room-questionnaire",
+          service.questionnaire
+        );
+      },
+      onQuestionnaireUpdate(questionnaire) {
+        service.questionnaire = questionnaire;
+      },
       async select(id: string) {
         service.isLoadingQuestionaire = true;
         await new Promise((r) => setTimeout(r, 1000)); // DEMO
         service.questionnaire = JSON.parse(
           JSON.stringify(questionnairies.find((q) => q.id === id))
         );
+        await service.save();
         service.isLoadingQuestionaire = false;
       },
       async _search() {
@@ -56,7 +68,12 @@ export const QuestionnaireService = createService(
   },
   (service) => {
     service.socketService = React.useContext(SocketService);
+    service.roomService = React.useContext(RoomService);
     service._debounceSearch = debounce(service._search, 100);
+    service.socketService.useOn(
+      "room-questionnaire",
+      service.onQuestionnaireUpdate
+    );
     React.useEffect(() => {
       if (global.window) service.search();
     });

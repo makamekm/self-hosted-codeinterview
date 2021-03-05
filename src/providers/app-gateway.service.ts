@@ -18,6 +18,7 @@ import { WsJwtGuard } from "~/guards/ws-jwt-guard";
 import { UserDto } from "~/dto/user.dto";
 import { RoomClientDto, RoomDto } from "~/dto/room.dto";
 import { ErrorDto } from "~/dto/error.dto";
+import { ResultQuestionnaireDto } from "~/dto/result.questionnaire.dto";
 
 class RoomClient implements RoomClientDto {
   id: string = "";
@@ -310,6 +311,7 @@ export class AppGateway
     | {
         room: RoomDto;
         client: RoomClientDto;
+        questionnaire: ResultQuestionnaireDto;
       }
     | ErrorDto
   > {
@@ -355,7 +357,36 @@ export class AppGateway
     return {
       client: roomClient.serialize(),
       room: room.serialize(),
+      questionnaire: null,
     };
+  }
+
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage("room-questionnaire")
+  async roomQuestionnaire(
+    client: Socket & { user: UserDto },
+    [roomId, questionnaire]: [
+      roomId: string,
+      questionnaire: ResultQuestionnaireDto
+    ]
+  ): Promise<void | ErrorDto> {
+    const room = this.rooms[roomId];
+
+    if (!room) {
+      return {
+        error: "The room has not been found!",
+      };
+    }
+
+    const roomClient = room.clients[client.id];
+
+    if (!roomClient) {
+      return {
+        error: "The room client has not been found!",
+      };
+    }
+
+    room.sendExcept(roomClient, "room-questionnaire", questionnaire);
   }
 
   @SubscribeMessage("editor")
