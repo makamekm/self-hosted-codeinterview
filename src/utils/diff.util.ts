@@ -44,7 +44,11 @@ export function applyDiff(obj: any, diffs) {
         parent = parent[getKey(key)];
       }
       const key = path[0];
-      parent[getKey(key)] = diff.value;
+      if (diff.value.type === "+" || diff.value.type === "e") {
+        parent[getKey(key)] = diff.value.value;
+      } else {
+        delete parent[getKey(key)];
+      }
     }
   }
   return result;
@@ -58,7 +62,9 @@ function keyChanges(base, object) {
       const currentPath = path === "" ? key : `${path}.${key}`;
 
       if (object[key] === undefined) {
-        changes[currentPath] = "-";
+        changes[currentPath] = {
+          type: "-",
+        };
       }
     }
 
@@ -70,12 +76,18 @@ function keyChanges(base, object) {
         : `${path}.${key}`;
 
       if (base[key] === undefined) {
-        changes[currentPath] = "+";
+        changes[currentPath] = {
+          type: "+",
+          value: object[key],
+        };
       } else if (value !== base[key]) {
         if (typeof value === "object" && typeof base[key] === "object") {
           walkObject(base[key], value, currentPath);
         } else {
-          changes[currentPath] = object[key];
+          changes[currentPath] = {
+            type: "e",
+            value: object[key],
+          };
         }
       }
     }
