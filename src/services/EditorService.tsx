@@ -51,6 +51,14 @@ export const EditorService = createService(
         // });
         // console.log({ stindex, edindex, prefixed });
       },
+      async onApplyCode(value: string) {
+        service.value = value;
+        await service.roomService.emit("editor", {
+          type: "apply",
+          value,
+        });
+        await service.roomService.emit("editor-state", value);
+      },
       onEditorSelectionData: (clientId, selections: AceAnchor) => {
         if (!service.editor) return;
         setAnchorSelectionClient(service.editor, clientId, selections);
@@ -63,11 +71,15 @@ export const EditorService = createService(
         await service.roomService.emit("editor-state", text);
       },
       onEditorData: (event) => {
-        let session = service.editor.getSession();
-        let doc = session.getDocument();
-        service.suppressEvents = true;
-        doc.applyDelta(event);
-        service.suppressEvents = false;
+        if (event.type === "apply") {
+          service.value = event.value;
+        } else {
+          let session = service.editor.getSession();
+          let doc = session.getDocument();
+          service.suppressEvents = true;
+          doc.applyDelta(event);
+          service.suppressEvents = false;
+        }
       },
       clearAnchors: () => {
         clearAllSelectionClient(service.editor);

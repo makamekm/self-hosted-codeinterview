@@ -19,15 +19,23 @@ import {
   ResultQuestionnaireSectionQuestionDto,
 } from "~/dto/result.questionnaire.dto";
 import { LanguageName } from "~/dto/language.dto";
+import { EditorService } from "~/services/EditorService";
 
 export const QuestionarieContent = observer(() => {
   const questionnaireService = useContext(QuestionnaireService);
+  const editorService = useContext(EditorService);
 
   const onChangeGrade = useCallback(
     (question: ResultQuestionnaireSectionQuestionDto) => (value) => {
       question.grade = value;
     },
     []
+  );
+  const onSendCodeToEditorGrade = useCallback(
+    (question: ResultQuestionnaireSectionQuestionDto) => () => {
+      editorService.onApplyCode(question.code);
+    },
+    [editorService]
   );
 
   return (
@@ -86,7 +94,10 @@ export const QuestionarieContent = observer(() => {
 
                             {!!question.code && (
                               <Tooltip label={question.code}>
-                                <button className="outline-none focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 bg-indigo-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-indigo-600 focus:bg-indigo-600 mr-6">
+                                <button
+                                  onClick={onSendCodeToEditorGrade(question)}
+                                  className="outline-none focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 bg-indigo-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-indigo-600 focus:bg-indigo-600 mr-6"
+                                >
                                   Code to Editor
                                 </button>
                               </Tooltip>
