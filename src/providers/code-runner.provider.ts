@@ -89,11 +89,7 @@ export class CodeRunnerService {
       if (data.length < this.limit_data) {
         data += chunk;
         if (data.length >= this.limit_data) {
-          data =
-            data.substr(0, this.limit_data) +
-            `...\n[exceded the limit of ${this.limit_data} chars]`;
-        } else {
-          data += chunk;
+          data += `...\n[exceded the limit of ${this.limit_data} chars]`;
         }
       }
     };
@@ -102,11 +98,7 @@ export class CodeRunnerService {
       if (err.length < this.limit_data) {
         err += chunk;
         if (err.length >= this.limit_data) {
-          err =
-            err.substr(0, this.limit_data) +
-            `...\n[exceded the limit of ${this.limit_data} chars]`;
-        } else {
-          err += chunk;
+          err += `...\n[exceded the limit of ${this.limit_data} chars]`;
         }
       }
     };
