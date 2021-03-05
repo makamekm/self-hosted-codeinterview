@@ -3,6 +3,7 @@ import React from "react";
 import { useServiceProvider } from "react-service-provider";
 import "tailwindcss/tailwind.css";
 import "~/components/index.scss";
+import "~/components/index.css";
 import { Services } from "~/components/Services";
 import { Header } from "~/components/Header";
 

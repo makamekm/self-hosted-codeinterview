@@ -54,7 +54,7 @@ export const Tabs = observer(
             >
               Questionarie
             </li>
-            <li
+            {/* <li
               onClick={state.onClickManagerChat}
               className={classNames("py-2 px-6 border-b-2", {
                 "border-gray-300": state.currentTab === TabTypes.ManagerChat,
@@ -64,8 +64,8 @@ export const Tabs = observer(
               })}
             >
               Manager's Chat
-            </li>
-            <li
+            </li> */}
+            {/* <li
               onClick={state.onClickSettings}
               className={classNames("py-2 px-6 border-b-2", {
                 "border-gray-300": state.currentTab === TabTypes.Settings,
@@ -74,7 +74,7 @@ export const Tabs = observer(
               })}
             >
               Settings
-            </li>
+            </li> */}
           </ul>
           <div>
             <UserPanel />

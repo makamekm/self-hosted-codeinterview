@@ -4,6 +4,7 @@ import React, { useContext } from "react";
 import { useRouter } from "next/router";
 import { RoomService } from "~/services/RoomService";
 import { Tabs, TabTypes } from "~/components/Tabs";
+import { Questionarie } from "~/components/Questionarie";
 // import  from "react-codemirror2";
 
 const Editor = dynamic(() => import("~/components/Editor"), {
@@ -44,6 +45,8 @@ const Page: React.FC = observer(() => {
               let container: JSX.Element;
               if (type === TabTypes.Terminal) {
                 container = <Terminal />;
+              } else if (type === TabTypes.Questionarie) {
+                container = <Questionarie />;
               }
               return (
                 <div className="relative flex-1 flex flex-col min-h-full max-h-full">
@@ -54,11 +57,6 @@ const Page: React.FC = observer(() => {
           />
         </div>
       </div>
-      <style jsx global>{`
-        .tabs {
-          border-bottom: 2px solid #eaeaea;
-        }
-      `}</style>
     </div>
   );
 });

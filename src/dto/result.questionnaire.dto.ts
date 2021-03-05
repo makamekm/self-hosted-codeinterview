@@ -4,16 +4,25 @@ import {
   QuestionnaireSectionQuestionDto,
 } from "./questionnaire.dto";
 
-export enum ValueDto {
-  Unknown,
-  T1,
-  T2,
-  T3,
+export enum GradeDto {
+  NotAssesed = "NotAssesed",
+  NoKnowledge = "NoKnowledge",
+  T1 = "T1",
+  T2 = "T2",
+  T3 = "T3",
 }
+
+export const GradeNameDto = {
+  [GradeDto.NotAssesed]: "Not Assesed",
+  [GradeDto.NoKnowledge]: "No Knowledge",
+  [GradeDto.T1]: "T1",
+  [GradeDto.T2]: "T2",
+  [GradeDto.T3]: "T3",
+};
 
 export interface ResultQuestionnaireSectionQuestionDto
   extends QuestionnaireSectionQuestionDto {
-  value: ValueDto;
+  grade: GradeDto | null;
   comments: string;
 }
 
@@ -22,6 +31,6 @@ export interface ResultQuestionnaireSectionDto extends QuestionnaireSectionDto {
 }
 
 export interface ResultQuestionnaireDto extends QuestionnaireDto {
-  recommendedValue: ValueDto;
+  recommendedGrade: GradeDto;
   sections: ResultQuestionnaireSectionDto[];
 }

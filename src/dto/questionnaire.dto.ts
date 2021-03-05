@@ -3,14 +3,15 @@ import { Language } from "./language.dto";
 export interface QuestionnaireSectionQuestionDto {
   id: string;
   name: string;
-  description: string;
-  code: string;
+  description?: string;
+  code?: string;
+  language?: Language;
 }
 
 export interface QuestionnaireSectionDto {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   questions: QuestionnaireSectionQuestionDto[];
 }
 
