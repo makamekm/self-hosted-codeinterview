@@ -6,6 +6,7 @@ import { SocketService } from "./SocketService";
 import { EditorService } from "./EditorService";
 import { RoomClientDto, RoomDto } from "~/dto/room.dto";
 import { QuestionnaireService } from "./QuestionnaireService";
+import { toJS } from "mobx";
 
 export const RoomService = createService(
   () => {
@@ -54,6 +55,7 @@ export const RoomService = createService(
           service.room = data.room;
           service.client = data.client;
           service.questionnaire = data.questionnaire || null;
+          service.questionnairePrev = toJS(data.questionnaire);
           service.isConnected = true;
           service.editorService.value = service.room.text;
           service.editorService.makeAnchors();

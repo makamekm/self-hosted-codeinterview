@@ -28,8 +28,9 @@ export const QuestionarieContent = observer(() => {
   const onChangeGrade = useCallback(
     (question: ResultQuestionnaireSectionQuestionDto) => (value) => {
       question.grade = value;
+      questionnaireService.syncQuestionnaire();
     },
-    []
+    [questionnaireService]
   );
   const onSendCodeToEditorGrade = useCallback(
     (question: ResultQuestionnaireSectionQuestionDto) => () => {

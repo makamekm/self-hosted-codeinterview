@@ -52,6 +52,7 @@
     "cache-manager-redis-store": "^2.0.0",
     "codemirror": "^5.59.4",
     "cookie": "^0.4.1",
+    "deep-diff": "^1.0.2",
     "dotenv": "^8.2.0",
     "javascript-terminal": "^1.1.1",
     "js-cookie": "^2.2.1",
