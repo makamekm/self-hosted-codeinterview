@@ -24,16 +24,15 @@ export const SocketService = createService(
           service.socket.disconnect();
           service.socket = null;
         }
+        let token = Cookies.get("session");
+        let options: any = {};
+        if (token) {
+          options.Authorization = Cookies.get("session");
+        }
         service.socket = io(SOCKET_SERVER, {
-          // extraHeaders: {
-          //   Authorization: "Bearer authorization_token_here"
-          // }
           transportOptions: {
             polling: {
-              extraHeaders: {
-                Authorization: Cookies.get("session"),
-                // Session: document.cookie,
-              },
+              extraHeaders: options,
             },
           },
         });

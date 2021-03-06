@@ -17,10 +17,13 @@ import { AppGateway } from "./providers/app-gateway.service";
 import { CodeRunnerService } from "./providers/code-runner.provider";
 import { GoogleStrategy } from "./strategies/google.strategy";
 import { GoogleController } from "./controllers/google.controller";
+import { EventServiceModule } from "./providers/event.service";
+import { MetadataScanner, ModulesContainer } from "@nestjs/core";
 
 @Module({
   imports: [
     // CacheModule.register(),
+    EventServiceModule,
     RedisModule.register({
       host: "localhost",
       port: 6379,

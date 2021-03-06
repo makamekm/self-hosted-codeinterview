@@ -9,8 +9,10 @@ export class WsJwtGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const client = context.switchToWs().getClient();
     const authToken = client.handshake.headers.authorization;
-    if (!!authToken) {
+    if (authToken) {
       try {
+        console.log("JWT>>>>>>>>", authToken);
+
         const jwtPayload = jwt.verify(
           authToken,
           process.env.JWT_SECRET

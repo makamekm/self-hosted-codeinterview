@@ -20,6 +20,7 @@ import { UserDto } from "~/dto/user.dto";
 import { RoomClientDto, RoomDto } from "~/dto/room.dto";
 import { ErrorDto } from "~/dto/error.dto";
 import { ResultQuestionnaireDto } from "~/dto/result.questionnaire.dto";
+import { EventService, EventSubscribe } from "./event.service";
 
 class RoomClient implements RoomClientDto {
   id: string = "";
@@ -101,25 +102,15 @@ export class AppGateway
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly redisService: RedisService,
-    private codeRunnerService: CodeRunnerService
-  ) {
-    this.redisService
-      .getClient()
-      .on("room-send-client-except", this.onSubRoomSendClientExcept);
-    this.redisService
-      .getClient()
-      .on("room-send-client", this.onSubRoomSendClient);
-  }
+    private codeRunnerService: CodeRunnerService,
+    private eventService: EventService
+  ) {}
 
   private logger: Logger = new Logger("AppGateway");
 
   rooms: {
     [id: string]: Room;
   } = {};
-
-  async sendEvent(name: string, ...args) {
-    await this.redisService.getClient().emit(name, ...args);
-  }
 
   sendLocalRoomExcept(
     room: Room,
@@ -156,7 +147,8 @@ export class AppGateway
     }
   }
 
-  onSubRoomSendClientExcept = (roomId, clientId, filter, event, ...args) => {
+  @EventSubscribe("room-send-client-except")
+  onSubRoomSendClientExcept(roomId, clientId, filter, event, ...args) {
     if (this.rooms[roomId]) {
       this.sendLocalRoomExcept(
         this.rooms[roomId],
@@ -166,13 +158,14 @@ export class AppGateway
         ...args
       );
     }
-  };
+  }
 
-  onSubRoomSendClient = (roomId, filter, event, ...args) => {
+  @EventSubscribe("room-send-client")
+  onSubRoomSendClient(roomId, filter, event, ...args) {
     if (this.rooms[roomId]) {
       this.sendLocalRoom(this.rooms[roomId], filter, event, ...args);
     }
-  };
+  }
 
   storeRoom = async (room: Room) => {
     let result = await this.redisService.getClient().set(
@@ -275,7 +268,7 @@ export class AppGateway
       isManager: roomClient.isManager,
     };
 
-    this.sendEvent(
+    this.eventService.emit(
       "room-send-client-except",
       room.id,
       roomClient.id,
@@ -322,7 +315,7 @@ export class AppGateway
       };
     }
 
-    this.sendEvent(
+    this.eventService.emit(
       "room-send-client",
       room.id,
       {},
@@ -335,7 +328,7 @@ export class AppGateway
     try {
       let result = await this.codeRunnerService.execute(room.text);
 
-      this.sendEvent(
+      this.eventService.emit(
         "room-send-client",
         room.id,
         {},
@@ -346,7 +339,7 @@ export class AppGateway
       );
 
       if (result.data) {
-        this.sendEvent(
+        this.eventService.emit(
           "room-send-client",
           room.id,
           {},
@@ -356,7 +349,7 @@ export class AppGateway
       }
 
       if (result.err) {
-        this.sendEvent(
+        this.eventService.emit(
           "room-send-client",
           room.id,
           {},
@@ -371,7 +364,7 @@ export class AppGateway
 
       return result;
     } catch (error) {
-      this.sendEvent(
+      this.eventService.emit(
         "room-send-client",
         room.id,
         {},
@@ -434,7 +427,7 @@ export class AppGateway
       `Client Room has been created: ${roomId} and isManager: ${roomClient.isManager} by ${client.id} username: {username}`
     );
 
-    this.sendEvent(
+    this.eventService.emit(
       "room-send-client-except",
       room.id,
       roomClient.id,
@@ -479,7 +472,7 @@ export class AppGateway
       };
     }
 
-    this.sendEvent(
+    this.eventService.emit(
       "room-send-client-except",
       room.id,
       roomClient.id,
@@ -524,7 +517,7 @@ export class AppGateway
       };
     }
 
-    this.sendEvent(
+    this.eventService.emit(
       "room-send-client-except",
       room.id,
       roomClient.id,
@@ -555,7 +548,7 @@ export class AppGateway
       };
     }
 
-    this.sendEvent(
+    this.eventService.emit(
       "room-send-client-except",
       room.id,
       roomClient.id,
@@ -603,7 +596,7 @@ export class AppGateway
       if (room.clients[client.id]) {
         const roomClient = room.clients[client.id];
         delete room.clients[client.id];
-        this.sendEvent(
+        this.eventService.emit(
           "room-send-client-except",
           room.id,
           roomClient.id,
