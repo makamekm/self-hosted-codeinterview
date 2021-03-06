@@ -9,7 +9,7 @@ import {
 import { CACHE_MANAGER, Inject, Logger, UseGuards } from "@nestjs/common";
 import { Socket, Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
-import { applyDiff, getDiff } from "~/utils/diff.util";
+import { applyDiff } from "~/utils/diff.util";
 import rug from "random-username-generator";
 import { Cache } from "cache-manager";
 import { RedisService } from "nestjs-redis";
@@ -69,22 +69,6 @@ class Room implements RoomDto {
     this.storeDebounceFn = debounce(() => storeFn(this), 1000);
   }
 
-  sendExcept(clientId: string, event: string, ...args: any) {
-    for (const key of Object.keys(this.clients)) {
-      if (key !== clientId && this.clients[key].socket) {
-        this.clients[key].socket.emit(event, ...args);
-      }
-    }
-  }
-
-  send(event: string, ...args: any) {
-    for (const key of Object.keys(this.clients)) {
-      if (this.clients[key].socket) {
-        this.clients[key].socket.emit(event, ...args);
-      }
-    }
-  }
-
   serialize(): RoomDto {
     return {
       id: this.id,
@@ -118,13 +102,77 @@ export class AppGateway
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly redisService: RedisService,
     private codeRunnerService: CodeRunnerService
-  ) {}
+  ) {
+    this.redisService
+      .getClient()
+      .on("room-send-client-except", this.onSubRoomSendClientExcept);
+    this.redisService
+      .getClient()
+      .on("room-send-client", this.onSubRoomSendClient);
+  }
 
   private logger: Logger = new Logger("AppGateway");
 
   rooms: {
     [id: string]: Room;
   } = {};
+
+  async sendEvent(name: string, ...args) {
+    await this.redisService.getClient().emit(name, ...args);
+  }
+
+  sendLocalRoomExcept(
+    room: Room,
+    clientId: string,
+    filter: {
+      isManagersOnly?: boolean;
+    },
+    event: string,
+    ...args: any
+  ) {
+    for (const key of Object.keys(room.clients)) {
+      if (key !== clientId && room.clients[key].socket) {
+        if (!filter.isManagersOnly || room.clients[key].isManager) {
+          room.clients[key].socket.emit(event, ...args);
+        }
+      }
+    }
+  }
+
+  sendLocalRoom(
+    room: Room,
+    filter: {
+      isManagersOnly?: boolean;
+    },
+    event: string,
+    ...args: any
+  ) {
+    for (const key of Object.keys(room.clients)) {
+      if (room.clients[key].socket) {
+        if (!filter.isManagersOnly || room.clients[key].isManager) {
+          room.clients[key].socket.emit(event, ...args);
+        }
+      }
+    }
+  }
+
+  onSubRoomSendClientExcept = (roomId, clientId, filter, event, ...args) => {
+    if (this.rooms[roomId]) {
+      this.sendLocalRoomExcept(
+        this.rooms[roomId],
+        clientId,
+        filter,
+        event,
+        ...args
+      );
+    }
+  };
+
+  onSubRoomSendClient = (roomId, filter, event, ...args) => {
+    if (this.rooms[roomId]) {
+      this.sendLocalRoom(this.rooms[roomId], filter, event, ...args);
+    }
+  };
 
   storeRoom = async (room: Room) => {
     let result = await this.redisService.getClient().set(
@@ -227,7 +275,14 @@ export class AppGateway
       isManager: roomClient.isManager,
     };
 
-    room.sendExcept(roomClient.id, "room-change-client", clientData);
+    this.sendEvent(
+      "room-send-client-except",
+      room.id,
+      roomClient.id,
+      {},
+      "room-change-client",
+      clientData
+    );
 
     return {
       id: roomClient.id,
@@ -267,7 +322,10 @@ export class AppGateway
       };
     }
 
-    room.send(
+    this.sendEvent(
+      "room-send-client",
+      room.id,
+      {},
       "room-start-code",
       `Code is being executed by ${roomClient.username}`
     );
@@ -277,7 +335,10 @@ export class AppGateway
     try {
       let result = await this.codeRunnerService.execute(room.text);
 
-      room.send(
+      this.sendEvent(
+        "room-send-client",
+        room.id,
+        {},
         "room-end-code",
         `Code has been executed by ${roomClient.username} within ${
           result.time / 1000
@@ -285,11 +346,23 @@ export class AppGateway
       );
 
       if (result.data) {
-        room.send("room-end-code-data", `Output:\n${result.data}`);
+        this.sendEvent(
+          "room-send-client",
+          room.id,
+          {},
+          "room-end-code-data",
+          `Output:\n${result.data}`
+        );
       }
 
       if (result.err) {
-        room.send("room-end-code-err", `Error Output:\n${result.err}`);
+        this.sendEvent(
+          "room-send-client",
+          room.id,
+          {},
+          "room-end-code-err",
+          `Error Output:\n${result.err}`
+        );
       }
 
       this.logger.log(
@@ -298,7 +371,13 @@ export class AppGateway
 
       return result;
     } catch (error) {
-      room.send("room-end-code-err", `Execution has failed die to:\n${error}`);
+      this.sendEvent(
+        "room-send-client",
+        room.id,
+        {},
+        "room-end-code-err",
+        `Execution has failed die to:\n${error}`
+      );
 
       this.logger.log(`Code execution has failed: ${roomId} by ${client.id}`);
       this.logger.log(error);
@@ -355,16 +434,23 @@ export class AppGateway
       `Client Room has been created: ${roomId} and isManager: ${roomClient.isManager} by ${client.id} username: {username}`
     );
 
-    room.sendExcept(roomClient.id, "room-add-client", {
-      id: roomClient.id,
-      username: roomClient.username,
-      isManager: roomClient.isManager,
-    });
+    this.sendEvent(
+      "room-send-client-except",
+      room.id,
+      roomClient.id,
+      {},
+      "room-add-client",
+      {
+        id: roomClient.id,
+        username: roomClient.username,
+        isManager: roomClient.isManager,
+      }
+    );
 
     return {
       client: roomClient.serialize(),
       room: room.serialize(),
-      questionnaire: room.questionnaire,
+      questionnaire: roomClient.isManager ? room.questionnaire : null,
     };
   }
 
@@ -393,7 +479,16 @@ export class AppGateway
       };
     }
 
-    room.sendExcept(roomClient.id, "room-questionnaire", diffs);
+    this.sendEvent(
+      "room-send-client-except",
+      room.id,
+      roomClient.id,
+      {
+        isManagersOnly: true,
+      },
+      "room-questionnaire",
+      diffs
+    );
 
     this.applyQuestionnaireDiff(room, diffs);
 
@@ -429,7 +524,14 @@ export class AppGateway
       };
     }
 
-    room.sendExcept(roomClient.id, "editor", ...args);
+    this.sendEvent(
+      "room-send-client-except",
+      room.id,
+      roomClient.id,
+      {},
+      "editor",
+      ...args
+    );
   }
 
   @SubscribeMessage("editor-selection")
@@ -453,7 +555,15 @@ export class AppGateway
       };
     }
 
-    room.sendExcept(roomClient.id, "editor-selection", client.id, ...args);
+    this.sendEvent(
+      "room-send-client-except",
+      room.id,
+      roomClient.id,
+      {},
+      "editor-selection",
+      client.id,
+      ...args
+    );
   }
 
   @SubscribeMessage("editor-state")
@@ -493,11 +603,18 @@ export class AppGateway
       if (room.clients[client.id]) {
         const roomClient = room.clients[client.id];
         delete room.clients[client.id];
-        room.sendExcept(roomClient.id, "room-remove-client", {
-          id: roomClient.id,
-          username: roomClient.username,
-          isManager: roomClient.isManager,
-        });
+        this.sendEvent(
+          "room-send-client-except",
+          room.id,
+          roomClient.id,
+          {},
+          "room-remove-client",
+          {
+            id: roomClient.id,
+            username: roomClient.username,
+            isManager: roomClient.isManager,
+          }
+        );
       }
     }
   }
