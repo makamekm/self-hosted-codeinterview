@@ -54,11 +54,14 @@ export const RoomService = createService(
         } else {
           service.room = data.room;
           service.client = data.client;
-          service.questionnaire = data.questionnaire || null;
-          service.questionnairePrev = toJS(data.questionnaire);
-          service.isConnected = true;
+          service.questionnaireService.questionnaire =
+            data.questionnaire || null;
+          service.questionnaireService.questionnairePrev = toJS(
+            data.questionnaire
+          );
           service.editorService.value = service.room.text;
           service.editorService.makeAnchors();
+          service.isConnected = true;
           service.connectHotPromise.resolve();
         }
       },

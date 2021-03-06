@@ -46,6 +46,7 @@ export const QuestionnaireService = createService(
       onQuestionnaireUpdate({ type, value: diffs }) {
         if (type === "replace") {
           service.questionnaire = diffs;
+          service.questionnairePrev = toJS(service.questionnaire);
         } else if (type === "diff") {
           const prevValue = toJS(service.questionnaire);
           service.questionnaire = applyDiff(toJS(service.questionnaire), diffs);

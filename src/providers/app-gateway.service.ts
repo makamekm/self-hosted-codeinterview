@@ -9,6 +9,7 @@ import {
 import { CACHE_MANAGER, Inject, Logger, UseGuards } from "@nestjs/common";
 import { Socket, Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
+import { applyDiff, getDiff } from "~/utils/diff.util";
 import rug from "random-username-generator";
 import { Cache } from "cache-manager";
 import { RedisService } from "nestjs-redis";
@@ -51,6 +52,7 @@ class Room implements RoomDto {
   id: string = "";
   text: string = "";
   managerSecret: string = "";
+  questionnaire: ResultQuestionnaireDto;
   clients: {
     [id: string]: RoomClient;
   } = {};
@@ -67,9 +69,9 @@ class Room implements RoomDto {
     this.storeDebounceFn = debounce(() => storeFn(this), 1000);
   }
 
-  sendExcept(client: RoomClient, event: string, ...args: any) {
+  sendExcept(clientId: string, event: string, ...args: any) {
     for (const key of Object.keys(this.clients)) {
-      if (this.clients[key] !== client) {
+      if (key !== clientId && this.clients[key].socket) {
         this.clients[key].socket.emit(event, ...args);
       }
     }
@@ -77,7 +79,9 @@ class Room implements RoomDto {
 
   send(event: string, ...args: any) {
     for (const key of Object.keys(this.clients)) {
-      this.clients[key].socket.emit(event, ...args);
+      if (this.clients[key].socket) {
+        this.clients[key].socket.emit(event, ...args);
+      }
     }
   }
 
@@ -129,6 +133,7 @@ export class AppGateway
         id: room.id,
         managerSecret: room.managerSecret,
         text: room.text,
+        questionnaire: room.questionnaire,
       })
     );
     if (result) {
@@ -145,6 +150,7 @@ export class AppGateway
         id: string;
         managerSecret: string;
         text: string;
+        questionnaire: ResultQuestionnaireDto;
       } = JSON.parse(serializedRoom);
       const room = new Room(
         roomData.id,
@@ -152,6 +158,7 @@ export class AppGateway
         this.storeRoom
       );
       room.text = roomData.text;
+      room.questionnaire = roomData.questionnaire;
       this.rooms[room.id] = room;
 
       this.logger.log(
@@ -220,7 +227,7 @@ export class AppGateway
       isManager: roomClient.isManager,
     };
 
-    room.sendExcept(roomClient, "room-change-client", clientData);
+    room.sendExcept(roomClient.id, "room-change-client", clientData);
 
     return {
       id: roomClient.id,
@@ -348,7 +355,7 @@ export class AppGateway
       `Client Room has been created: ${roomId} and isManager: ${roomClient.isManager} by ${client.id} username: {username}`
     );
 
-    room.sendExcept(roomClient, "room-add-client", {
+    room.sendExcept(roomClient.id, "room-add-client", {
       id: roomClient.id,
       username: roomClient.username,
       isManager: roomClient.isManager,
@@ -357,7 +364,7 @@ export class AppGateway
     return {
       client: roomClient.serialize(),
       room: room.serialize(),
-      questionnaire: null,
+      questionnaire: room.questionnaire,
     };
   }
 
@@ -365,9 +372,9 @@ export class AppGateway
   @SubscribeMessage("room-questionnaire")
   async roomQuestionnaire(
     client: Socket & { user: UserDto },
-    [roomId, questionnaire]: [
+    [roomId, diffs]: [
       roomId: string,
-      questionnaire: ResultQuestionnaireDto
+      diffs: any // TODO: add diff dto
     ]
   ): Promise<void | ErrorDto> {
     const room = this.rooms[roomId];
@@ -386,7 +393,19 @@ export class AppGateway
       };
     }
 
-    room.sendExcept(roomClient, "room-questionnaire", questionnaire);
+    room.sendExcept(roomClient.id, "room-questionnaire", diffs);
+
+    this.applyQuestionnaireDiff(room, diffs);
+
+    room.storeDebounceFn();
+  }
+
+  applyQuestionnaireDiff(room: Room, { type, value }) {
+    if (type === "replace") {
+      room.questionnaire = value;
+    } else if (type === "diff") {
+      room.questionnaire = applyDiff(room.questionnaire, value);
+    }
   }
 
   @SubscribeMessage("editor")
@@ -410,7 +429,7 @@ export class AppGateway
       };
     }
 
-    room.sendExcept(roomClient, "editor", ...args);
+    room.sendExcept(roomClient.id, "editor", ...args);
   }
 
   @SubscribeMessage("editor-selection")
@@ -434,7 +453,7 @@ export class AppGateway
       };
     }
 
-    room.sendExcept(roomClient, "editor-selection", client.id, ...args);
+    room.sendExcept(roomClient.id, "editor-selection", client.id, ...args);
   }
 
   @SubscribeMessage("editor-state")
@@ -474,7 +493,7 @@ export class AppGateway
       if (room.clients[client.id]) {
         const roomClient = room.clients[client.id];
         delete room.clients[client.id];
-        room.sendExcept(roomClient, "room-remove-client", {
+        room.sendExcept(roomClient.id, "room-remove-client", {
           id: roomClient.id,
           username: roomClient.username,
           isManager: roomClient.isManager,
