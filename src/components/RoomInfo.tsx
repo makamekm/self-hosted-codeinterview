@@ -1,28 +1,10 @@
 import { observer } from "mobx-react";
-import classNames from "classnames";
-import { useCallback, useContext } from "react";
-import { QuestionnaireService } from "~/services/QuestionnaireService";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionButton,
-  AccordionPanel,
-} from "@reach/accordion";
-import "@reach/accordion/styles.css";
-import Tooltip from "@reach/tooltip";
-import "@reach/tooltip/styles.css";
-import { Listbox, ListboxOption } from "@reach/listbox";
-import "@reach/listbox/styles.css";
-import { GradeDto, GradeNameDto } from "~/dto/result.questionnaire.dto";
-import { LanguageName } from "~/dto/language.dto";
-import { EditorService } from "~/services/EditorService";
+import { useContext } from "react";
 import { RoomService } from "~/services/RoomService";
 import { idToColor } from "~/utils/id-to-color.util";
 
 export const RoomInfo = observer(() => {
   const roomService = useContext(RoomService);
-  const questionnaireService = useContext(QuestionnaireService);
-  const editorService = useContext(EditorService);
 
   return (
     <div className="overflow-y-auto px-2 py-2">

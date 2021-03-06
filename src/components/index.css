@@ -1,3 +1,12 @@
+button.demo {
+  color: red;
+}
+
+body {
+  background-color: #282a36;
+  color: #ddd;
+}
+
 [data-reach-listbox-button] {
   @apply w-full rounded-md text-sm border-none outline-none focus:outline-none bg-gray-900 px-4 py-2 focus-within:bg-gray-500 hover:bg-gray-500 transition-colors duration-200 !important;
 }
@@ -27,6 +36,7 @@
   max-width: 400px !important;
   line-break: auto !important;
   white-space: pre-line !important;
+  z-index: 999;
 }
 
 [data-reach-dialog-content] {
