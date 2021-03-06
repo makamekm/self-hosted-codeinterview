@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import classNames from "classnames";
-import { useCallback, useContext } from "react";
+import { ChangeEvent, useCallback, useContext } from "react";
 import { QuestionnaireService } from "~/services/QuestionnaireService";
 import {
   Accordion,
@@ -32,6 +32,15 @@ export const QuestionarieContent = observer(() => {
     },
     [questionnaireService]
   );
+  const onChangeComment = useCallback(
+    (question: ResultQuestionnaireSectionQuestionDto) => (
+      event: ChangeEvent<HTMLInputElement>
+    ) => {
+      question.comment = event.currentTarget.value;
+      questionnaireService.syncQuestionnaire();
+    },
+    [questionnaireService]
+  );
   const onSendCodeToEditorGrade = useCallback(
     (question: ResultQuestionnaireSectionQuestionDto) => () => {
       editorService.onApplyCode(question.code);
@@ -44,7 +53,7 @@ export const QuestionarieContent = observer(() => {
       <Accordion className="w-full">
         {questionnaireService.questionnaire.sections.map((section) => (
           <AccordionItem className="w-full mt-2" key={section.id}>
-            <div className="border-gray-600 border rounded-sm">
+            <div className="rounded-md shadow-xl bg-gray-700">
               <AccordionButton className="px-2 py-2 w-full text-center font-semibold text-base hover:bg-gray-500 focus:bg-gray-500 focus:outline-none rounded-sm transition-colors duration-200">
                 {section.name} (
                 {section.questions.reduce((acc, q) => {
@@ -56,7 +65,9 @@ export const QuestionarieContent = observer(() => {
                 / {section.questions.length})
               </AccordionButton>
               <AccordionPanel className="px-2 py-2 border-gray-600 border-t space-y-4">
-                {!!section.description && <div>{section.description}</div>}
+                {!!section.description && (
+                  <div className="px-2">{section.description}</div>
+                )}
 
                 <Accordion className="w-full flex flex-col space-y-4">
                   {section.questions.map((question) => (
@@ -77,17 +88,22 @@ export const QuestionarieContent = observer(() => {
                             &bull;
                           </div>
                           <div className="flex-1">{question.name}</div>
-                          <div className="text-gray-500">
-                            {LanguageName[question.language]}
+                          <div className="text-gray-400">
+                            {
+                              LanguageName[
+                                question.language ||
+                                  questionnaireService.questionnaire.language
+                              ]
+                            }
                           </div>
                         </AccordionButton>
                         <AccordionPanel className="px-2 py-2 space-y-4">
                           {!!question.description && (
                             <div>{question.description}</div>
                           )}
-                          <div className="flex flex-row justify-start items-center w-full">
+                          <div className="flex flex-row justify-between items-center w-full space-x-4">
                             <Listbox
-                              className="mr-6"
+                              className="w-40"
                               value={question.grade || GradeDto.NotAssesed}
                               onChange={onChangeGrade(question)}
                             >
@@ -98,13 +114,20 @@ export const QuestionarieContent = observer(() => {
                               ))}
                             </Listbox>
 
+                            <input
+                              value={question.comment}
+                              onChange={onChangeComment(question)}
+                              placeholder="Comments..."
+                              className="py-2 px-4 ml-2 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
+                            />
+
                             {!!question.code && (
                               <Tooltip label={question.code}>
                                 <button
                                   onClick={onSendCodeToEditorGrade(question)}
-                                  className="outline-none focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 bg-indigo-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-indigo-600 focus:bg-indigo-600 mr-6"
+                                  className="outline-none focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 bg-indigo-500 rounded-md font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-indigo-600 focus:bg-indigo-600"
                                 >
-                                  Code to Editor
+                                  Send code to Editor
                                 </button>
                               </Tooltip>
                             )}

@@ -4,7 +4,6 @@ import { useCallback, useContext, useState } from "react";
 import { QuestionnaireService } from "~/services/QuestionnaireService";
 import { Dialog } from "@reach/dialog";
 import "@reach/dialog/styles.css";
-import Tooltip from "@reach/tooltip";
 import "@reach/tooltip/styles.css";
 import { GradeDto, GradeNameDto } from "~/dto/result.questionnaire.dto";
 import { LanguageName } from "~/dto/language.dto";
@@ -37,10 +36,10 @@ export const QuestionarieReview = observer(() => {
             {LanguageName[questionnaireService.questionnaire.language]}
           </div>
         </div>
-        <div className="w-full">
+        <div className="w-full space-y-4">
           {questionnaireService.questionnaire.sections.map((section) => (
-            <div className="w-full mt-2" key={section.id}>
-              <div className="border-gray-600 border rounded-sm">
+            <div className="w-full" key={section.id}>
+              <div className="rounded-md shadow-xl bg-gray-700">
                 <div className="px-2 py-2 w-full text-center font-semibold text-base hover:bg-gray-500 focus:bg-gray-500 focus:outline-none rounded-sm transition-colors duration-200">
                   {section.name} (
                   {section.questions.reduce((acc, q) => {
@@ -53,8 +52,10 @@ export const QuestionarieReview = observer(() => {
                   }, 0)}{" "}
                   / {section.questions.length})
                 </div>
-                <div className="px-2 py-2 border-gray-600 border-t flex flex-col space-y-4">
-                  {!!section.description && <div>{section.description}</div>}
+                <div className="px-2 py-2 border-gray-600 border-t space-y-4">
+                  {!!section.description && (
+                    <div className="text-sm px-2">{section.description}</div>
+                  )}
 
                   <div className="w-full flex flex-col space-y-4">
                     {section.questions.map((question) => (
@@ -75,11 +76,16 @@ export const QuestionarieReview = observer(() => {
                               &bull;
                             </div>
                             <div className="flex-1">{question.name}</div>
-                            <div className="text-gray-500">
-                              {LanguageName[question.language]}
+                            <div className="text-gray-400">
+                              {
+                                LanguageName[
+                                  question.language ||
+                                    questionnaireService.questionnaire.language
+                                ]
+                              }
                             </div>
                           </div>
-                          <div className="px-2 py-2 flex flex-col space-y-4">
+                          <div className="px-2 py-2 space-y-4">
                             {!!question.description && (
                               <div>{question.description}</div>
                             )}

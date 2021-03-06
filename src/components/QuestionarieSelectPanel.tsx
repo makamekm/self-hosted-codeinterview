@@ -49,6 +49,9 @@ export const QuestionarieSelectPanel = observer(() => {
     },
     [questionnaireService]
   );
+  const onResetQuestionaire = useCallback(() => {
+    openWarnDialog(null);
+  }, [openWarnDialog]);
   const onClickItem = useCallback(
     (id: string) => () => {
       if (!questionnaireService.questionnaire) {
@@ -84,7 +87,7 @@ export const QuestionarieSelectPanel = observer(() => {
         onDismiss={closeSelectDialog}
         aria-label="Select Questionaire Dialog"
       >
-        <div className="flex flex-row justify-items-center items-center">
+        <div className="flex flex-row justify-items-center items-center space-x-2">
           <div className="w-1/4">
             <Listbox
               className="w-full"
@@ -102,10 +105,18 @@ export const QuestionarieSelectPanel = observer(() => {
             value={questionnaireService.searchQuestionarieName}
             onChange={onChangeSearchName}
             type="search"
-            name="serch"
-            placeholder="Search"
-            className="py-2 px-4 ml-2 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
+            name="search"
+            placeholder="Search..."
+            className="py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
           />
+          {!!questionnaireService.questionnaire && (
+            <button
+              onClick={onResetQuestionaire}
+              className="outline-none focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50 bg-red-500 rounded-md font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-red-600 focus:bg-red-600"
+            >
+              Reset Questionaire
+            </button>
+          )}
         </div>
 
         {questionnaireService.isLoadingList ? (

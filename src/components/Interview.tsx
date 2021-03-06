@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { RoomService } from "~/services/RoomService";
 import { Tabs, TabTypes } from "~/components/Tabs";
 import { Questionarie } from "~/components/Questionarie";
+import { RoomInfo } from "./RoomInfo";
 // import  from "react-codemirror2";
 
 const Editor = dynamic(() => import("~/components/Editor"), {
@@ -15,7 +16,7 @@ const Terminal = dynamic(() => import("~/components/Terminal"), {
   ssr: false,
 });
 
-export const Interview: React.FC = observer(() => {
+export const InterviewRoom: React.FC = observer(() => {
   const router = useRouter();
   const serviceRoom = useContext(RoomService);
 
@@ -47,6 +48,8 @@ export const Interview: React.FC = observer(() => {
                 container = <Terminal />;
               } else if (type === TabTypes.Questionarie) {
                 container = <Questionarie />;
+              } else if (type === TabTypes.Room) {
+                container = <RoomInfo />;
               }
               return (
                 <div className="relative flex-1 flex flex-col min-h-full max-h-full">

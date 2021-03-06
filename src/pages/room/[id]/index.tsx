@@ -1,9 +1,9 @@
 import { observer } from "mobx-react";
 import React from "react";
-import { Interview } from "~/components/Interview";
+import { InterviewRoom } from "~/components/Interview";
 
 const Page: React.FC = observer(() => {
-  return <Interview />;
+  return <InterviewRoom />;
 });
 
 export default Page;

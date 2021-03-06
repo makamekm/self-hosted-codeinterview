@@ -23,7 +23,7 @@ export const GradeNameDto = {
 export interface ResultQuestionnaireSectionQuestionDto
   extends QuestionnaireSectionQuestionDto {
   grade: GradeDto | null;
-  comments: string;
+  comment: string;
 }
 
 export interface ResultQuestionnaireSectionDto extends QuestionnaireSectionDto {

@@ -7,7 +7,6 @@ import { Language } from "~/dto/language.dto";
 import { questionnaireList, questionnairies } from "~/demo/questionnaire";
 import { ResultQuestionnaireDto } from "~/dto/result.questionnaire.dto";
 import { RoomService } from "./RoomService";
-import { useOnChangeDiff } from "~/utils/on-change.hook";
 import { toJS } from "mobx";
 import { applyDiff, getDiff } from "~/utils/diff.util";
 
@@ -48,18 +47,21 @@ export const QuestionnaireService = createService(
         if (type === "replace") {
           service.questionnaire = diffs;
         } else if (type === "diff") {
-          console.log(diffs);
           const prevValue = toJS(service.questionnaire);
           service.questionnaire = applyDiff(toJS(service.questionnaire), diffs);
           service.questionnairePrev = prevValue;
         }
       },
-      async select(id: string) {
+      async select(id?: string) {
         service.isLoadingQuestionaire = true;
-        await new Promise((r) => setTimeout(r, 1000)); // DEMO
-        service.questionnaire = JSON.parse(
-          JSON.stringify(questionnairies.find((q) => q.id === id))
-        );
+        if (id == null) {
+          service.questionnaire = null;
+        } else {
+          await new Promise((r) => setTimeout(r, 1000)); // DEMO
+          service.questionnaire = JSON.parse(
+            JSON.stringify(questionnairies.find((q) => q.id === id))
+          );
+        }
         await service.save();
         service.isLoadingQuestionaire = false;
       },

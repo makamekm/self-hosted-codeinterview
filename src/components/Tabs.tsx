@@ -9,6 +9,7 @@ export enum TabTypes {
   Questionarie,
   ManagerChat,
   Settings,
+  Room,
 }
 
 export const Tabs = observer(
@@ -27,6 +28,9 @@ export const Tabs = observer(
       },
       onClickSettings: () => {
         state.currentTab = TabTypes.Settings;
+      },
+      onClickRoom: () => {
+        state.currentTab = TabTypes.Room;
       },
     }));
     return (
@@ -53,6 +57,16 @@ export const Tabs = observer(
               })}
             >
               Questionarie
+            </li>
+            <li
+              onClick={state.onClickRoom}
+              className={classNames("py-2 px-6 border-b-2", {
+                "border-gray-300": state.currentTab === TabTypes.Room,
+                "border-transparent text-gray-500":
+                  state.currentTab !== TabTypes.Room,
+              })}
+            >
+              Room Info
             </li>
             {/* <li
               onClick={state.onClickManagerChat}
