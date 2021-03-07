@@ -5,12 +5,14 @@ import { QuestionnaireDto } from "~/dto/questionnaire.dto";
 import { Language } from "~/dto/language.dto";
 import { QuestionnaireDocument } from "~/schemas/questionnaire.schema";
 import { UserDto } from "~/dto/user.dto";
+import { UserService } from "./user.service";
 
 @Injectable()
 export class QuestionnaireService {
   constructor(
     @Inject("QUESTIONNAIRE_MODEL")
-    private questionnaireModel: Model<QuestionnaireDocument>
+    private questionnaireModel: Model<QuestionnaireDocument>,
+    private readonly userService: UserService
   ) {}
 
   async create(questionnaireDto: QuestionnaireDto): Promise<QuestionnaireDto> {
@@ -25,34 +27,60 @@ export class QuestionnaireService {
     );
   }
 
-  async findAll(
+  async findAllExcept(
     name: string,
     language: Language,
     limit: number,
-    userId?: string
+    userId: string
   ): Promise<QuestionnaireDto[]> {
-    const userFilter: {
-      user?: Condition<UserDto>;
-    } = userId
-      ? {
-          user: {
-            id: userId,
-          },
-        }
-      : {};
+    const user = await this.userService.get(userId);
     const result = await this.questionnaireModel
       .find(
         {
           name: { $regex: new RegExp(name, "i") },
           language: language,
-          ...userFilter,
+          user: {
+            $not: {
+              $eq: user,
+            },
+          },
         },
         {
           id: 1,
           name: 1,
           user: 1,
           language: 1,
-          sections: 0,
+        }
+      )
+      .sort({ date: -1 })
+      .limit(limit)
+      .populate("user")
+      .exec();
+
+    result.forEach((r) => delete r.user?.accessToken);
+
+    return result;
+  }
+
+  async findAll(
+    name: string,
+    language: Language,
+    limit: number,
+    userId: string
+  ): Promise<QuestionnaireDto[]> {
+    const user = await this.userService.get(userId);
+    const result = await this.questionnaireModel
+      .find(
+        {
+          name: { $regex: new RegExp(name, "i") },
+          language: language,
+          user: user,
+        },
+        {
+          id: 1,
+          name: 1,
+          user: 1,
+          language: 1,
         }
       )
       .sort({ date: -1 })
@@ -66,19 +94,11 @@ export class QuestionnaireService {
   }
 
   async get(id: string, userId?: string): Promise<QuestionnaireDto> {
-    const userFilter: {
-      user?: Condition<UserDto>;
-    } = userId
-      ? {
-          user: {
-            id: userId,
-          },
-        }
-      : {};
+    const user = await this.userService.get(userId);
     const result = await this.questionnaireModel
       .findOne({
         id,
-        ...userFilter,
+        user: user,
       })
       .populate("user")
       .exec();

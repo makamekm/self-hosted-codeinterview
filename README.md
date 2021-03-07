@@ -58,4 +58,17 @@ or with majestic
 
 ## Mongo
 
-`docker run --name mongodb -d -p 27017:27017 --restart unless-stopped -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=root mongo`
+`docker run --name mongodb -d -p 27017:27017 --restart unless-stopped -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password mongo`
+
+```
+docker exec -it mongodb /bin/bash
+mongo -u admin -p password --authenticationDatabase admin
+use nest
+db.createUser({
+  user: 'nest',
+  pwd: 'password',
+  roles: [{ role: 'readWrite', db: 'nest'}]
+})
+exit
+exit
+```

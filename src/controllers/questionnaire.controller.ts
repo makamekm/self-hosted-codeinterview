@@ -14,6 +14,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { Language } from "~/dto/language.dto";
 import { QuestionnaireDto } from "~/dto/questionnaire.dto";
 import { JwtGuard } from "~/guards/jwt-guard";
+import { JwtOptionalGuard } from "~/guards/jwt-optional-guard";
 import { QuestionnaireService } from "~/providers/questionnaire.service";
 import { UserService } from "~/providers/user.service";
 
@@ -26,7 +27,9 @@ export class QuestionnaireController {
   ) {}
 
   @Get("/all")
+  @UseGuards(JwtOptionalGuard)
   async findAll(
+    @Req() req,
     @Query("name") name: string,
     @Query("language") language: Language,
     @Query("limit") limit?: number
@@ -34,7 +37,14 @@ export class QuestionnaireController {
     limit = limit || 10;
     limit = Math.min(limit, 10);
 
-    return this.questionnaireService.findAll(name, language, limit);
+    const userId = req.user.id;
+
+    return this.questionnaireService.findAllExcept(
+      name,
+      language,
+      limit,
+      userId
+    );
   }
 
   @Get("/personal")
@@ -43,7 +53,7 @@ export class QuestionnaireController {
     @Req() req,
     @Query("name") name: string,
     @Query("language") language: Language,
-    @Query("limit") limit: number
+    @Query("limit") limit?: number
   ) {
     limit = limit || 10;
     limit = Math.min(limit, 10);
@@ -93,7 +103,7 @@ export class QuestionnaireController {
   }
 
   @Get(":id")
-  async get(@Req() req, @Param() params) {
-    return await this.questionnaireService.get(params.id);
+  async get(@Req() req, @Param("id") id) {
+    return await this.questionnaireService.get(id);
   }
 }

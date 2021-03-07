@@ -7,6 +7,7 @@ export const QuestionnaireSchema = new mongoose.Schema(
     language: { type: String, index: true },
     name: { type: String, index: true },
     date: { type: Date, default: Date.now, index: true },
+    isPublic: { type: Boolean, default: false, index: true },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

@@ -30,7 +30,7 @@ export class GoogleController {
       lastName: req.user.lastName,
       picture: req.user.picture,
     };
-    const cookies = cookie.parse(req.headers.cookie);
+    const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
     const redirectTo =
       cookies["redirect_to"] || req.query["redirect_to"] || "/";
     response.cookie("redirect_to", "", {

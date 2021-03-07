@@ -6,7 +6,7 @@ import { UserDto } from "~/dto/user.dto";
 import { UserService } from "~/providers/user.service";
 
 @Injectable()
-export class JwtGuard implements CanActivate {
+export class JwtOptionalGuard implements CanActivate {
   constructor(private readonly userService: UserService) {}
 
   async canActivate(context: ExecutionContext) {
@@ -21,12 +21,11 @@ export class JwtGuard implements CanActivate {
         ) as UserDto;
         // const user: GoogleUser = await this.authService.validateUser(jwtPayload);
         req.user = jwtPayload;
-        return !!jwtPayload;
       } catch (error) {
         console.error(error);
       }
-      return false;
+      return true;
     }
-    return false;
+    return true;
   }
 }

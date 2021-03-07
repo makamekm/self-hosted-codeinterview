@@ -18,6 +18,7 @@ export interface QuestionnaireSectionDto {
 
 export interface QuestionnaireDto {
   language: Language;
+  isPublic: boolean;
   id: string;
   name: string;
   user: UserDto;
