@@ -87,20 +87,6 @@ const Editor: React.FC = observer(() => {
             RUN
           </button>
         </Tooltip>
-        <Tooltip label="Control + T">
-          <button
-            disabled={service.isExecuting}
-            onClick={service.onExecute}
-            className={classNames(
-              {
-                "pointer-events-none opacity-40": service.isExecuting,
-              },
-              "outline-none focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 bg-indigo-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-indigo-600"
-            )}
-          >
-            TEST
-          </button>
-        </Tooltip>
       </div>
       <style jsx global>{`
         #editor {
