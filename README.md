@@ -55,3 +55,7 @@ or with majestic
 ## Redis
 
 `docker run --name redis -d -p 6379:6379 --restart unless-stopped redis`
+
+## Mongo
+
+`docker run --name mongodb -d -p 27017:27017 --restart unless-stopped -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=root mongo`

@@ -1,4 +1,5 @@
 import { Language } from "./language.dto";
+import { UserDto } from "./user.dto";
 
 export interface QuestionnaireSectionQuestionDto {
   id: string;
@@ -19,5 +20,6 @@ export interface QuestionnaireDto {
   language: Language;
   id: string;
   name: string;
+  user: UserDto;
   sections: QuestionnaireSectionDto[];
 }

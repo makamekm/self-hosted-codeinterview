@@ -18,7 +18,10 @@ import { CodeRunnerService } from "./providers/code-runner.provider";
 import { GoogleStrategy } from "./strategies/google.strategy";
 import { GoogleController } from "./controllers/google.controller";
 import { EventServiceModule } from "./providers/event.service";
-import { MetadataScanner, ModulesContainer } from "@nestjs/core";
+import { databaseProviders } from "./providers/database.providers";
+import { dataProviders } from "./providers/data.providers";
+import { QuestionnaireService } from "./providers/questionnaire.service";
+import { UserService } from "./providers/User.service";
 
 @Module({
   imports: [
@@ -44,7 +47,15 @@ import { MetadataScanner, ModulesContainer } from "@nestjs/core";
     ScheduleModule.forRoot(),
   ],
   controllers: [NextController, AppController, GoogleController],
-  providers: [AppGateway, CodeRunnerService, GoogleStrategy],
+  providers: [
+    ...databaseProviders,
+    ...dataProviders,
+    UserService,
+    QuestionnaireService,
+    AppGateway,
+    CodeRunnerService,
+    GoogleStrategy,
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
