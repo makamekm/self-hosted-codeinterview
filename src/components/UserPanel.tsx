@@ -32,44 +32,52 @@ export const UserPanel = observer(() => {
   }, [state]);
   if (!userService.user) {
     return (
-      <div className="p-px bg-gray-300 rounded-full relative mx-2">
-        <img
-          tabIndex={0}
-          src="https://i2.wp.com/www.techgeekandmore.com/wp-content/uploads/2018/05/Google.jpg?w=246&ssl=1"
-          alt=""
-          className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
-          onClick={userService.loginGoogle}
-        />
+      <div className="flex flex-row justify-between items-center">
+        <div className="py-2 font-thin font-mono text-sm">Login:</div>
+        <div className="p-px bg-gray-300 rounded-full relative mx-2">
+          <img
+            tabIndex={0}
+            src="/asset/google.jpg"
+            alt=""
+            className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+            onClick={userService.loginGoogle}
+          />
+        </div>
       </div>
     );
   }
   return (
-    <div className="p-px bg-gray-300 rounded-full relative mx-2" ref={ref}>
-      <img
-        tabIndex={0}
-        src={userService.user.picture}
-        alt=""
-        className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
-        onClick={state.onToggle}
-      />
-      <div
-        className={classNames(
-          "absolute right-0 w-40 mt-2 bg-white border rounded shadow-xl z-10",
-          {
-            hidden: !state.open,
-          }
-        )}
-      >
-        {/* <button className="transition-colors duration-200 block px-4 py-2 text-sm text-left text-gray-900 rounded hover:bg-blue-400 hover:text-white w-full">
+    <div className="flex flex-row justify-between items-center">
+      <div className="py-2 font-thin font-mono text-sm">
+        {userService.user.username}
+      </div>
+      <div className="p-px bg-gray-300 rounded-full relative mx-2" ref={ref}>
+        <img
+          tabIndex={0}
+          src={userService.user.picture}
+          alt=""
+          className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+          onClick={state.onToggle}
+        />
+        <div
+          className={classNames(
+            "absolute right-0 w-40 mt-2 bg-white border rounded shadow-xl z-10",
+            {
+              hidden: !state.open,
+            }
+          )}
+        >
+          {/* <button className="transition-colors duration-200 block px-4 py-2 text-sm text-left text-gray-900 rounded hover:bg-blue-400 hover:text-white w-full">
           Settings
         </button>
         <hr /> */}
-        <button
-          onClick={userService.logout}
-          className="transition-colors duration-200 block px-4 py-2 text-sm text-left text-gray-900 rounded hover:bg-blue-400 hover:text-white w-full"
-        >
-          Logout
-        </button>
+          <button
+            onClick={userService.logout}
+            className="transition-colors duration-200 block px-4 py-2 text-sm text-left text-gray-900 rounded hover:bg-blue-400 hover:text-white w-full"
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   );
