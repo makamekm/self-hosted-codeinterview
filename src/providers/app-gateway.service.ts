@@ -102,8 +102,8 @@ export class AppGateway
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly redisService: RedisService,
-    private codeRunnerService: CodeRunnerService,
-    private eventService: EventService
+    private readonly codeRunnerService: CodeRunnerService,
+    private readonly eventService: EventService
   ) {}
 
   private logger: Logger = new Logger("AppGateway");

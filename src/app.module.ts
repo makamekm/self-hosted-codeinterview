@@ -21,7 +21,8 @@ import { EventServiceModule } from "./providers/event.service";
 import { databaseProviders } from "./providers/database.providers";
 import { dataProviders } from "./providers/data.providers";
 import { QuestionnaireService } from "./providers/questionnaire.service";
-import { UserService } from "./providers/User.service";
+import { UserService } from "./providers/user.service";
+import { QuestionnaireController } from "./controllers/questionnaire.controller";
 
 @Module({
   imports: [
@@ -46,7 +47,12 @@ import { UserService } from "./providers/User.service";
     }),
     ScheduleModule.forRoot(),
   ],
-  controllers: [NextController, AppController, GoogleController],
+  controllers: [
+    NextController,
+    AppController,
+    GoogleController,
+    QuestionnaireController,
+  ],
   providers: [
     ...databaseProviders,
     ...dataProviders,

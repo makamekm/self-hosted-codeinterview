@@ -3,6 +3,7 @@ import * as path from "path";
 import { AppModule } from "./app.module";
 import { CORS, WEB_SERVER_PORT, WEB_SERVER_HOST } from "@env/config";
 import { NextModule } from "@nestpress/next";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 
 export const getNestConfig = () => ({
   dir: path.resolve(process.cwd()),
@@ -23,6 +24,16 @@ export async function bootstrapAPI() {
     logger: ["error", "warn", "log"],
   });
   const port = WEB_SERVER_PORT;
+
+  const config = new DocumentBuilder()
+    .setTitle("Code Interview")
+    .setDescription("The Code Interview API description")
+    .setVersion("1.0")
+    // .addTag("code")
+    // .addTag("interview")
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api", app, document);
 
   app
     .get(NextModule)

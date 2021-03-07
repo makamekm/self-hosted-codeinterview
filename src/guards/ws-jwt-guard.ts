@@ -1,18 +1,17 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import * as jwt from "jsonwebtoken";
 import { UserDto } from "~/dto/user.dto";
+import { UserService } from "~/providers/user.service";
 
 @Injectable()
 export class WsJwtGuard implements CanActivate {
-  // constructor(private authService: AuthService) {}
+  constructor(private readonly userService: UserService) {}
 
   async canActivate(context: ExecutionContext) {
     const client = context.switchToWs().getClient();
     const authToken = client.handshake.headers.authorization;
     if (authToken) {
       try {
-        console.log("JWT>>>>>>>>", authToken);
-
         const jwtPayload = jwt.verify(
           authToken,
           process.env.JWT_SECRET

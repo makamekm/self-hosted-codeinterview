@@ -22,4 +22,13 @@ export class UserService {
 
     return result;
   }
+
+  async update(userDto: UserDto): Promise<UserDto> {
+    return await this.userModel.findOneAndUpdate(
+      {
+        id: userDto.id,
+      },
+      userDto
+    );
+  }
 }
