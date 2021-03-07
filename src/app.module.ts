@@ -12,7 +12,6 @@ import { NextController } from "./controllers/next.controller";
 import { FrontendMiddleware } from "./middlewares/frontend.middleware";
 import { ScheduleModule } from "@nestjs/schedule";
 import { RedisModule } from "nestjs-redis";
-import { AppController } from "./controllers/app.controller";
 import { AppGateway } from "./providers/app-gateway.service";
 import { CodeRunnerService } from "./providers/code-runner.provider";
 import { GoogleStrategy } from "./strategies/google.strategy";
@@ -47,12 +46,7 @@ import { QuestionnaireController } from "./controllers/questionnaire.controller"
     }),
     ScheduleModule.forRoot(),
   ],
-  controllers: [
-    NextController,
-    AppController,
-    GoogleController,
-    QuestionnaireController,
-  ],
+  controllers: [NextController, GoogleController, QuestionnaireController],
   providers: [
     ...databaseProviders,
     ...dataProviders,

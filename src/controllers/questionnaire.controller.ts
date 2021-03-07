@@ -10,12 +10,14 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import { ApiTags } from "@nestjs/swagger";
 import { Language } from "~/dto/language.dto";
 import { QuestionnaireDto } from "~/dto/questionnaire.dto";
 import { JwtGuard } from "~/guards/jwt-guard";
 import { QuestionnaireService } from "~/providers/questionnaire.service";
 import { UserService } from "~/providers/user.service";
 
+@ApiTags("Questionnaire")
 @Controller("api/questionnaire")
 export class QuestionnaireController {
   constructor(

@@ -29,8 +29,6 @@ export async function bootstrapAPI() {
     .setTitle("Code Interview")
     .setDescription("The Code Interview API description")
     .setVersion("1.0")
-    // .addTag("code")
-    // .addTag("interview")
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, document);
