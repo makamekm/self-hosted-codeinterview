@@ -16,6 +16,7 @@ import {
   QuestionnaireSectionDto,
   QuestionnaireSectionQuestionDto,
 } from "~/dto/questionnaire.dto";
+import { Toggle } from "./Toggle";
 
 const Question = observer(
   ({
@@ -291,6 +292,16 @@ export const QuestionarieBuilder = observer(() => {
           </ListboxOption>
         ))}
       </Listbox>
+
+      {!service.readOnly && (
+        <div className="flex flex-row items-center space-x-2">
+          <Toggle
+            checked={service.questionnaire.isPublic}
+            onChange={(value) => (service.questionnaire.isPublic = value)}
+          />
+          <div>Is Public</div>
+        </div>
+      )}
 
       <DragDropContext onDragEnd={onDragEnd}>
         {service.questionnaire.sections.map((section, index) => (
