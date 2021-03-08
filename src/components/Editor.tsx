@@ -56,7 +56,7 @@ const Editor: React.FC = observer(() => {
     >
       <AceEditor
         ref={codemirrorRef}
-        mode={LanguageType[roomService.room.language].}
+        mode={LanguageType[roomService.room.language]}
         theme="dracula"
         // maxLines={Infinity}
         height={editorHeight + "px"}

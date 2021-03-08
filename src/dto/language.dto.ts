@@ -21,5 +21,5 @@ export const LanguageRunnerData: {
 } = {
   [Language.TypeScript]: ["node", ["npx", "ts-node"], "file.ts"],
   [Language.JavaScript]: ["node", ["node"], "file.js"],
-  [Language.Java]: ["java", ["java"], "file.java"],
+  [Language.Java]: ["openjdk:8-jre-alpine", ["javac"], "file.java"],
 };
