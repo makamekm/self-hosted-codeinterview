@@ -2,7 +2,7 @@ import { Language } from "./language.dto";
 import { UserDto } from "./user.dto";
 
 export interface QuestionnaireSectionQuestionDto {
-  id: string;
+  id?: string;
   name: string;
   description?: string;
   code?: string;
@@ -10,7 +10,7 @@ export interface QuestionnaireSectionQuestionDto {
 }
 
 export interface QuestionnaireSectionDto {
-  id: string;
+  id?: string;
   name: string;
   description?: string;
   questions: QuestionnaireSectionQuestionDto[];
@@ -19,8 +19,8 @@ export interface QuestionnaireSectionDto {
 export interface QuestionnaireDto {
   language: Language;
   isPublic: boolean;
-  id: string;
+  id?: string;
   name: string;
-  user: UserDto;
+  user?: UserDto;
   sections: QuestionnaireSectionDto[];
 }
