@@ -358,7 +358,10 @@ export class AppGateway
     this.logger.log(`Code is being executed: ${roomId} by ${client.id}`);
 
     try {
-      let result = await this.codeRunnerService.execute(room.text);
+      let result = await this.codeRunnerService.execute(
+        room.text,
+        room.language || Language.JavaScript
+      );
 
       this.eventService.emit(
         "room-send-client",

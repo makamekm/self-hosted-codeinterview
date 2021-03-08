@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { spawn, exec } from "child_process";
 import { makeHotPromise } from "~/utils/hot-promise.util";
+import { Language, LanguageRunnerData } from "~/dto/language.dto";
 
 @Injectable()
 export class CodeRunnerService {
@@ -68,15 +69,16 @@ export class CodeRunnerService {
     return { child, pwd: pwd, send };
   }
 
-  async execute(code: string) {
+  async execute(code: string, language: Language) {
     const hotPromise = makeHotPromise<{
       data: string;
       err: string;
       code: number;
       time: number;
     }>();
+    const languageData = LanguageRunnerData[language];
     const folder = "temp/" + uuidv4();
-    const fileName = "file.js";
+    const fileName = languageData[2];
     const pwd = path.resolve(this.path, folder);
 
     await this.prepare(code, pwd, fileName);
@@ -110,8 +112,8 @@ export class CodeRunnerService {
         path.resolve("./DockerRunWithTimeout.sh"),
         `${this.timeout_value}`,
         `${pwd}`,
-        "node", // image
-        "node", // compilator
+        languageData[0], // image
+        ...languageData[1], // compilator
         `${fileName}`,
       ],
       {
