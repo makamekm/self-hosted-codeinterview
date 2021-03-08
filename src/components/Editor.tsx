@@ -1,19 +1,26 @@
 import { observer } from "mobx-react";
 import classNames from "classnames";
-import React, { useContext } from "react";
+import React, { useCallback, useContext } from "react";
 import { EditorService } from "~/services/EditorService";
 import useResizeObserver from "use-resize-observer";
 import AceEditor from "react-ace";
-import Tooltip from "@reach/tooltip";
 import useKeyboardShortcut from "use-keyboard-shortcut";
+import Tooltip from "@reach/tooltip";
 import "@reach/tooltip/styles.css";
+import { Listbox, ListboxOption } from "@reach/listbox";
+import "@reach/listbox/styles.css";
 
+import "ace-builds/src-noconflict/mode-java";
+import "ace-builds/src-noconflict/mode-typescript";
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/theme-dracula";
+import { LanguageName, LanguageType } from "~/dto/language.dto";
+import { RoomService } from "~/services/RoomService";
 
 const Editor: React.FC = observer(() => {
   const codemirrorRef = React.useRef<AceEditor>();
   const service = useContext(EditorService);
+  const roomService = useContext(RoomService);
 
   const [editorHeight, setEditorHeight] = React.useState(1);
   const updateEditorSize = React.useCallback((height) => {
@@ -37,9 +44,10 @@ const Editor: React.FC = observer(() => {
   useKeyboardShortcut(["Control", "S"], service.onExecute, {
     overrideSystem: true,
   });
-  useKeyboardShortcut(["Control", "T"], service.onExecute, {
-    overrideSystem: true,
-  });
+
+  if (!roomService.room) {
+    return <></>;
+  }
 
   return (
     <div
@@ -48,7 +56,7 @@ const Editor: React.FC = observer(() => {
     >
       <AceEditor
         ref={codemirrorRef}
-        mode="javascript"
+        mode={LanguageType[roomService.room.language].}
         theme="dracula"
         // maxLines={Infinity}
         height={editorHeight + "px"}
@@ -72,7 +80,7 @@ const Editor: React.FC = observer(() => {
         //   service.value = value;
         // }}
       />
-      <div className="absolute bottom-4 left-4 z-10 space-x-2">
+      <div className="absolute bottom-4 left-4 z-10 space-x-2 flex flex-row">
         <Tooltip label="Control + S">
           <button
             disabled={service.isExecuting}
@@ -87,6 +95,17 @@ const Editor: React.FC = observer(() => {
             RUN
           </button>
         </Tooltip>
+        <Listbox
+          className="w-40"
+          value={roomService.room.language}
+          onChange={roomService.changeLanguage}
+        >
+          {Object.keys(LanguageName).map((language) => (
+            <ListboxOption key={language} value={language}>
+              {LanguageName[language]}
+            </ListboxOption>
+          ))}
+        </Listbox>
       </div>
       <style jsx global>{`
         #editor {

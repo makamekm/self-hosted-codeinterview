@@ -20,7 +20,7 @@ export const EditorService = createService(
       roomService: null as ReturnType<typeof RoomService.useState>,
       terminalService: null as ReturnType<typeof TerminalService.useState>,
       editor: null as AceEditor["editor"],
-      value: "<h1>I ♥ react-codemirror2</h1>",
+      value: "",
       suppressEvents: false,
       onLoad: () => {
         if (global.window) {

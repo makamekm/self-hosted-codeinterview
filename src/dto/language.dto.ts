@@ -9,3 +9,9 @@ export const LanguageName = {
   [Language.JavaScript]: "JavaScript",
   [Language.Java]: "Java",
 };
+
+export const LanguageType = {
+  [Language.TypeScript]: "typescript",
+  [Language.JavaScript]: "javascript",
+  [Language.Java]: "java",
+};

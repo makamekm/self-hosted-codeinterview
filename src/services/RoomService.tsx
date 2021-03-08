@@ -89,6 +89,13 @@ export const RoomService = createService(
       onChangeClient: (client) => {
         service.room.clients[client.id] = client;
       },
+      onChangeLanguage: (language) => {
+        service.room.language = language;
+      },
+      changeLanguage: (language) => {
+        service.room.language = language;
+        service.emit("room-change-language", language);
+      },
       // async changeClient(username: string) {
       //   const result = await service.socketService.emit(
       //     "change-client",
@@ -118,5 +125,9 @@ export const RoomService = createService(
     service.socketService.useOn("room-add-client", service.onAddClient);
     service.socketService.useOn("room-remove-client", service.onRemoveClient);
     service.socketService.useOn("room-change-client", service.onChangeClient);
+    service.socketService.useOn(
+      "room-change-language",
+      service.onChangeLanguage
+    );
   }
 );

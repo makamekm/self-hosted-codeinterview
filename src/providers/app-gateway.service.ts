@@ -21,6 +21,7 @@ import { RoomClientDto, RoomDto } from "~/dto/room.dto";
 import { ErrorDto } from "~/dto/error.dto";
 import { ResultQuestionnaireDto } from "~/dto/result.questionnaire.dto";
 import { EventService, EventSubscribe } from "./event.service";
+import { Language } from "~/dto/language.dto";
 
 class RoomClient implements RoomClientDto {
   id: string = "";
@@ -53,6 +54,7 @@ class Room implements RoomDto {
   id: string = "";
   text: string = "";
   managerSecret: string = "";
+  language: Language = Language.JavaScript;
   questionnaire: ResultQuestionnaireDto;
   clients: {
     [id: string]: RoomClient;
@@ -78,6 +80,7 @@ class Room implements RoomDto {
         acc[key] = this.clients[key].serialize();
         return acc;
       }, {}),
+      language: this.language,
     };
   }
 }
@@ -167,6 +170,32 @@ export class AppGateway
     }
   }
 
+  @EventSubscribe("room-change-language")
+  onSubRoomChangeLanguage(roomId, language) {
+    const room = this.rooms[roomId];
+
+    if (!room) {
+      return {
+        error: "The room has not been found!",
+      };
+    }
+
+    room.language = language;
+  }
+
+  @EventSubscribe("room-change-text")
+  onSubRoomChangeText(roomId, text) {
+    const room = this.rooms[roomId];
+
+    if (!room) {
+      return {
+        error: "The room has not been found!",
+      };
+    }
+
+    room.text = text;
+  }
+
   storeRoom = async (room: Room) => {
     let result = await this.redisService.getClient().set(
       room.id,
@@ -175,6 +204,7 @@ export class AppGateway
         managerSecret: room.managerSecret,
         text: room.text,
         questionnaire: room.questionnaire,
+        language: room.language,
       })
     );
     if (result) {
@@ -192,6 +222,7 @@ export class AppGateway
         managerSecret: string;
         text: string;
         questionnaire: ResultQuestionnaireDto;
+        language: Language;
       } = JSON.parse(serializedRoom);
       const room = new Room(
         roomData.id,
@@ -200,6 +231,7 @@ export class AppGateway
       );
       room.text = roomData.text;
       room.questionnaire = roomData.questionnaire;
+      room.language = roomData.language || Language.JavaScript;
       this.rooms[room.id] = room;
 
       this.logger.log(
@@ -527,6 +559,42 @@ export class AppGateway
     );
   }
 
+  @SubscribeMessage("room-change-language")
+  async handleLanguage(
+    client: Socket,
+    [roomId, language]: [roomId: string, language: Language]
+  ): Promise<void | ErrorDto> {
+    const room = this.rooms[roomId];
+
+    if (!room) {
+      return {
+        error: "The room has not been found!",
+      };
+    }
+
+    const roomClient = room.clients[client.id];
+
+    if (!roomClient) {
+      return {
+        error: "The room client has not been found!",
+      };
+    }
+
+    room.language = language;
+    room.storeDebounceFn();
+
+    this.eventService.emit(
+      "room-send-client-except",
+      room.id,
+      roomClient.id,
+      {},
+      "room-change-language",
+      language
+    );
+
+    this.eventService.emit("room-change-language", room.id, language);
+  }
+
   @SubscribeMessage("editor-selection")
   async handleEditorSalection(
     client: Socket,
@@ -582,6 +650,8 @@ export class AppGateway
 
     room.text = text;
     room.storeDebounceFn();
+
+    this.eventService.emit("room-change-text", room.id, text);
   }
 
   afterInit(server: Server) {
