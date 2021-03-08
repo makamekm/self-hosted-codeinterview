@@ -16,6 +16,7 @@ export const QuestionnaireBuilderService = createService(
   () => {
     const service = useLocalObservable(() => ({
       id: null as string,
+      readOnly: false,
       questionnaire: getEmpty(),
       isLoading: false,
       async load() {

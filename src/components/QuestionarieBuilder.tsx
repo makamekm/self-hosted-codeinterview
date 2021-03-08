@@ -48,33 +48,47 @@ const Question = observer(
             <div className="flex-1 px-3 py-1 font-mono font-semibold text-sm">
               Question #{index + 1}
             </div>
-            <div
-              onClick={() => {
-                section.questions.splice(index, 1);
-              }}
-              className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
-            >
-              Remove
-            </div>
+            {!service.readOnly && (
+              <div
+                onClick={() => {
+                  section.questions.splice(index, 1);
+                }}
+                className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
+              >
+                Remove
+              </div>
+            )}
           </div>
           <div className="w-full text-center font-semibold text-base">
             <input
+              readOnly={service.readOnly}
               value={question.name}
               placeholder="Question Name"
               className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
               onChange={(e) => (question.name = e.currentTarget.value)}
             />
           </div>
-          <input
-            value={question.description || ""}
-            placeholder="Question Description"
-            className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
-            onChange={(e) => (question.description = e.currentTarget.value)}
-          />
+          {(!service.readOnly || !!question.description) && (
+            <input
+              readOnly={service.readOnly}
+              value={question.description || ""}
+              placeholder="Question Description"
+              className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
+              onChange={(e) => (question.description = e.currentTarget.value)}
+            />
+          )}
           <Listbox
+            disabled={service.readOnly}
             className="w-full"
             value={question.language || service.questionnaire.language}
-            onChange={(language) => (question.language = language as Language)}
+            onChange={(language) => {
+              if (!service.readOnly) {
+                question.language = language as Language;
+                if (question.language === service.questionnaire.language) {
+                  delete question.language;
+                }
+              }
+            }}
           >
             {Object.keys(LanguageName).map((language) => (
               <ListboxOption key={language} value={language}>
@@ -83,6 +97,7 @@ const Question = observer(
             ))}
           </Listbox>
           <AceEditor
+            readOnly={service.readOnly}
             mode={
               LanguageType[question.language || service.questionnaire.language]
             }
@@ -120,50 +135,59 @@ const Section = observer(
         <div className="rounded-md shadow-xl bg-gray-700">
           <div className="flex flex-row items-stretch space-x-2 px-2 py-2 w-full text-center font-semibold text-base hover:bg-gray-500 focus:bg-gray-500 focus:outline-none rounded-sm transition-colors duration-200">
             <input
+              readOnly={service.readOnly}
               value={section.name}
               placeholder="Section Name"
               className="flex-1 py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 transition-colors duration-200"
               onChange={(e) => (section.name = e.currentTarget.value)}
             />
-            <div
-              onClick={() => {
-                service.questionnaire.sections.splice(index, 1);
-              }}
-              className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
-            >
-              Remove
-            </div>
-            <div
-              onClick={() => {
-                if (index !== 0)
-                  reorder(service.questionnaire.sections, index, index - 1);
-              }}
-              className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
-            >
-              Up
-            </div>
-            <div
-              onClick={() => {
-                if (index + 1 !== service.questionnaire.sections.length)
-                  reorder(service.questionnaire.sections, index, index + 1);
-              }}
-              className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
-            >
-              Down
-            </div>
+            {!service.readOnly && (
+              <>
+                <div
+                  onClick={() => {
+                    service.questionnaire.sections.splice(index, 1);
+                  }}
+                  className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
+                >
+                  Remove
+                </div>
+                <div
+                  onClick={() => {
+                    if (index !== 0)
+                      reorder(service.questionnaire.sections, index, index - 1);
+                  }}
+                  className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
+                >
+                  Up
+                </div>
+                <div
+                  onClick={() => {
+                    if (index + 1 !== service.questionnaire.sections.length)
+                      reorder(service.questionnaire.sections, index, index + 1);
+                  }}
+                  className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
+                >
+                  Down
+                </div>
+              </>
+            )}
           </div>
           <div className="border-gray-600 border-t space-y-8 px-2 py-2">
-            <input
-              value={section.description || ""}
-              placeholder="Section Description"
-              className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
-              onChange={(e) => (section.description = e.currentTarget.value)}
-            />
+            {(!service.readOnly || !!section.description) && (
+              <input
+                readOnly={service.readOnly}
+                value={section.description || ""}
+                placeholder="Section Description"
+                className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
+                onChange={(e) => (section.description = e.currentTarget.value)}
+              />
+            )}
 
             {section.questions.length > 0 && (
               <div className="w-full flex flex-col space-y-4">
                 {section.questions.map((question, index) => (
                   <Draggable
+                    isDragDisabled={service.readOnly}
                     draggableId={question.id}
                     index={index}
                     key={question.id}
@@ -185,17 +209,19 @@ const Section = observer(
 
             {provided.placeholder}
 
-            <button
-              onClick={() =>
-                section.questions.push({
-                  id: uuidv4(),
-                  name: "New Question",
-                })
-              }
-              className="w-full bg-gray-600 hover:bg-gray-500 focus:outline-none focus:bg-gray-500 text-white text-sm px-4 py-2 rounded-sm transition-colors duration-200"
-            >
-              + Add Question
-            </button>
+            {!service.readOnly && (
+              <button
+                onClick={() =>
+                  section.questions.push({
+                    id: uuidv4(),
+                    name: "New Question",
+                  })
+                }
+                className="w-full bg-gray-600 hover:bg-gray-500 focus:outline-none focus:bg-gray-500 text-white text-sm px-4 py-2 rounded-sm transition-colors duration-200"
+              >
+                + Add Question
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -207,6 +233,10 @@ export const QuestionarieBuilder = observer(() => {
   const service = useContext(QuestionnaireBuilderService);
 
   const onDragEnd = (result) => {
+    if (service.readOnly) {
+      return;
+    }
+
     const { source, destination } = result;
 
     // dropped outside the list
@@ -239,6 +269,7 @@ export const QuestionarieBuilder = observer(() => {
   return (
     <div className="w-full space-y-4">
       <input
+        readOnly={service.readOnly}
         value={service.questionnaire.name}
         placeholder="Questionnaire Name"
         className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
@@ -249,8 +280,10 @@ export const QuestionarieBuilder = observer(() => {
         className="w-full"
         value={service.questionnaire.language}
         onChange={(language) =>
+          !service.readOnly &&
           (service.questionnaire.language = language as Language)
         }
+        disabled={service.readOnly}
       >
         {Object.keys(LanguageName).map((language) => (
           <ListboxOption key={language} value={language}>
@@ -275,18 +308,20 @@ export const QuestionarieBuilder = observer(() => {
         ))}
       </DragDropContext>
 
-      <button
-        onClick={() =>
-          service.questionnaire.sections.push({
-            id: uuidv4(),
-            name: "New Section",
-            questions: [],
-          })
-        }
-        className="w-full bg-gray-600 hover:bg-gray-500 focus:outline-none focus:bg-gray-500 text-white text-sm px-4 py-2 rounded-sm transition-colors duration-200"
-      >
-        + Add Section
-      </button>
+      {!service.readOnly && (
+        <button
+          onClick={() =>
+            service.questionnaire.sections.push({
+              id: uuidv4(),
+              name: "New Section",
+              questions: [],
+            })
+          }
+          className="w-full bg-gray-600 hover:bg-gray-500 focus:outline-none focus:bg-gray-500 text-white text-sm px-4 py-2 rounded-sm transition-colors duration-200"
+        >
+          + Add Section
+        </button>
+      )}
     </div>
   );
 });

@@ -20,7 +20,7 @@ body {
 }
 
 [data-reach-listbox-popover] {
-  @apply rounded-sm outline-none focus:outline-none border-none !important;
+  @apply rounded-sm outline-none focus:outline-none border-none z-50 !important;
 }
 
 [data-reach-listbox-list] {
