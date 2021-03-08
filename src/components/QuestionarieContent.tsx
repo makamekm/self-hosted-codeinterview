@@ -20,9 +20,11 @@ import {
 } from "~/dto/result.questionnaire.dto";
 import { LanguageName } from "~/dto/language.dto";
 import { EditorService } from "~/services/EditorService";
+import { RoomService } from "~/services/RoomService";
 
 export const QuestionarieContent = observer(() => {
   const questionnaireService = useContext(QuestionnaireService);
+  const roomService = useContext(RoomService);
   const editorService = useContext(EditorService);
 
   const onChangeGrade = useCallback(
@@ -43,9 +45,12 @@ export const QuestionarieContent = observer(() => {
   );
   const onSendCodeToEditorGrade = useCallback(
     (question: ResultQuestionnaireSectionQuestionDto) => () => {
-      editorService.onApplyCode(question.code);
+      editorService.onApplyCode(
+        question.code,
+        question.language || questionnaireService.questionnaire.language
+      );
     },
-    [editorService]
+    [editorService, questionnaireService]
   );
 
   return (

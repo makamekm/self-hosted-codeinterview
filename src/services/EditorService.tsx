@@ -12,6 +12,7 @@ import {
   setAnchorSelectionClient,
 } from "../components/EditorSelection";
 import { TerminalService } from "./TerminalService";
+import { Language } from "~/dto/language.dto";
 
 export const EditorService = createService(
   () => {
@@ -51,13 +52,16 @@ export const EditorService = createService(
         // });
         // console.log({ stindex, edindex, prefixed });
       },
-      async onApplyCode(value: string) {
+      async onApplyCode(value: string, language: Language) {
         service.value = value;
         await service.roomService.emit("editor", {
           type: "apply",
           value,
         });
         await service.roomService.emit("editor-state", value);
+        console.log(language);
+
+        service.roomService.changeLanguage(language);
       },
       onEditorSelectionData: (clientId, selections: AceAnchor) => {
         if (!service.editor) return;
