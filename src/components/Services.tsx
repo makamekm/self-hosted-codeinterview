@@ -5,6 +5,7 @@ import { CreateRoomService } from "~/services/CreateRoomService";
 import { TerminalService } from "~/services/TerminalService";
 import { UserService } from "~/services/UserService";
 import { QuestionnaireService } from "~/services/QuestionnaireService";
+import { QuestionnaireSearchService } from "~/services/QuestionnaireSearchService";
 
 export const Services = [
   SocketService,
@@ -14,4 +15,5 @@ export const Services = [
   TerminalService,
   UserService,
   QuestionnaireService,
+  QuestionnaireSearchService,
 ];

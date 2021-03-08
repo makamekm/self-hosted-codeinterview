@@ -20,7 +20,7 @@ body {
 }
 
 [data-reach-listbox-popover] {
-  @apply rounded-sm outline-none focus:outline-none border-none mt-1 !important;
+  @apply rounded-sm outline-none focus:outline-none border-none !important;
 }
 
 [data-reach-listbox-list] {
@@ -33,6 +33,10 @@ body {
 
 [data-reach-listbox-option][aria-selected="true"] {
   @apply text-white !important;
+}
+
+[data-reach-combobox-option] {
+  @apply text-sm transition-colors duration-200 px-4 py-2 !important;
 }
 
 [data-reach-tooltip] {

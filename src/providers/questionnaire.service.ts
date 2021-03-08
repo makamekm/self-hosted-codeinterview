@@ -31,19 +31,29 @@ export class QuestionnaireService {
     name: string,
     language: Language,
     limit: number,
-    userId: string
+    username?: string,
+    userId?: string
   ): Promise<QuestionnaireDto[]> {
-    const user = await this.userService.get(userId);
+    // const user = userId ? await this.userService.get(userId) : null;
+    // const users = username ? await this.userService.find(username, 100) : null;
+    const filter = {} as any;
+    if (username) {
+      filter["user.username"] = { $regex: new RegExp(username, "i") };
+    }
+    if (userId) {
+      filter["user.id"] = {
+        $not: {
+          $eq: userId,
+        },
+      };
+    }
+
     const result = await this.questionnaireModel
       .find(
         {
           name: { $regex: new RegExp(name, "i") },
           language: language,
-          user: {
-            $not: {
-              $eq: user,
-            },
-          },
+          ...filter,
         },
         {
           id: 1,
@@ -66,9 +76,9 @@ export class QuestionnaireService {
     name: string,
     language: Language,
     limit: number,
-    userId: string
+    userId?: string
   ): Promise<QuestionnaireDto[]> {
-    const user = await this.userService.get(userId);
+    const user = userId ? await this.userService.get(userId) : null;
     const result = await this.questionnaireModel
       .find(
         {

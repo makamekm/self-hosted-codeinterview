@@ -32,23 +32,25 @@ export class QuestionnaireController {
     @Req() req,
     @Query("name") name: string,
     @Query("language") language: Language,
+    @Query("username") username?: string,
     @Query("limit") limit?: number
   ) {
     limit = limit || 10;
     limit = Math.min(limit, 10);
 
-    const userId = req.user.id;
+    const userId = req.user?.id;
 
     return this.questionnaireService.findAllExcept(
       name,
       language,
       limit,
+      username,
       userId
     );
   }
 
   @Get("/personal")
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtOptionalGuard)
   async findPersonal(
     @Req() req,
     @Query("name") name: string,
@@ -58,7 +60,7 @@ export class QuestionnaireController {
     limit = limit || 10;
     limit = Math.min(limit, 10);
 
-    const userId = req.user.id;
+    const userId = req.user?.id;
 
     return this.questionnaireService.findAll(name, language, limit, userId);
   }

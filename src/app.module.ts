@@ -22,6 +22,7 @@ import { dataProviders } from "./providers/data.providers";
 import { QuestionnaireService } from "./providers/questionnaire.service";
 import { UserService } from "./providers/user.service";
 import { QuestionnaireController } from "./controllers/questionnaire.controller";
+import { UserController } from "./controllers/user.controller";
 
 @Module({
   imports: [
@@ -46,7 +47,12 @@ import { QuestionnaireController } from "./controllers/questionnaire.controller"
     }),
     ScheduleModule.forRoot(),
   ],
-  controllers: [NextController, GoogleController, QuestionnaireController],
+  controllers: [
+    NextController,
+    GoogleController,
+    QuestionnaireController,
+    UserController,
+  ],
   providers: [
     ...databaseProviders,
     ...dataProviders,

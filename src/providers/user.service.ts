@@ -31,4 +31,21 @@ export class UserService {
       userDto
     );
   }
+
+  async find(username: string, limit: number): Promise<UserDto[]> {
+    const result = await this.userModel
+      .find(
+        {
+          username: { $regex: new RegExp(username, "i") },
+        },
+        {
+          accessToken: 0,
+        }
+      )
+      .sort({ username: 1 })
+      .limit(limit)
+      .exec();
+
+    return result;
+  }
 }
