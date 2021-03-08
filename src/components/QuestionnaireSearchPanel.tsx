@@ -41,7 +41,7 @@ export const QuestionnaireSearchPanel = observer(() => {
     }
   };
   const onCreateQuestionnaire = () => {
-    console.log("sdfsdf");
+    router.push({ pathname: "/questionnaire-create" });
   };
   return (
     <div className="w-full flex-col justify-items-stretch items-stretch space-y-2">
