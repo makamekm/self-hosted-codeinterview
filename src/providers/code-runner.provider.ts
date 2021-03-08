@@ -113,8 +113,7 @@ export class CodeRunnerService {
         `${this.timeout_value}`,
         `${pwd}`,
         languageData[0], // image
-        ...languageData[1], // compilator
-        `${fileName}`,
+        `"${languageData[1].join(" ")}"`, // compilator
       ],
       {
         shell: "/bin/sh",
