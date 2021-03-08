@@ -1,19 +1,19 @@
 import { observer } from "mobx-react";
 import classNames from "classnames";
-import React, { useCallback, useContext } from "react";
+import React, { useContext } from "react";
 import { EditorService } from "~/services/EditorService";
 import useResizeObserver from "use-resize-observer";
 import AceEditor from "react-ace";
+import "ace-builds/src-noconflict/mode-java";
+import "ace-builds/src-noconflict/mode-typescript";
+import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/theme-dracula";
 import useKeyboardShortcut from "use-keyboard-shortcut";
 import Tooltip from "@reach/tooltip";
 import "@reach/tooltip/styles.css";
 import { Listbox, ListboxOption } from "@reach/listbox";
 import "@reach/listbox/styles.css";
 
-import "ace-builds/src-noconflict/mode-java";
-import "ace-builds/src-noconflict/mode-typescript";
-import "ace-builds/src-noconflict/mode-javascript";
-import "ace-builds/src-noconflict/theme-dracula";
 import { LanguageName, LanguageType } from "~/dto/language.dto";
 import { RoomService } from "~/services/RoomService";
 

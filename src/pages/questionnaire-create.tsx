@@ -1,9 +1,17 @@
 import { observer } from "mobx-react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import React, { useContext, useEffect } from "react";
-import { QuestionarieBuilder } from "~/components/QuestionarieBuilder";
+// import { QuestionarieBuilder } from "~/components/QuestionarieBuilder";
 import { TopPanel } from "~/components/TopPanel";
 import { QuestionnaireBuilderService } from "~/services/QuestionnaireBuilderService";
+
+const QuestionarieBuilder = dynamic(
+  () => import("~/components/QuestionarieBuilder"),
+  {
+    ssr: false,
+  }
+);
 
 const Home: React.FC = observer(() => {
   const router = useRouter();
