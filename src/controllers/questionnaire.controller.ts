@@ -41,7 +41,7 @@ export class QuestionnaireController {
     limit = limit || 10;
     limit = Math.min(limit, 10);
 
-    return this.questionnaireService.findAllExcept(
+    return this.questionnaireService.find(
       name,
       language,
       limit,
@@ -64,9 +64,7 @@ export class QuestionnaireController {
     limit = limit || 10;
     limit = Math.min(limit, 10);
 
-    const userId = req.user?.id;
-
-    return this.questionnaireService.findAll(name, language, limit, userId);
+    return this.questionnaireService.find(name, language, limit, req.user?._id);
   }
 
   @Post()
