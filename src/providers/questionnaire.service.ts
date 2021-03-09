@@ -42,17 +42,17 @@ export class QuestionnaireService {
     // const users = username ? await this.userService.find(username, 100) : null;
 
     const filter = {} as FilterQuery<QuestionnaireDocument>;
-    // if (filerUserId) {
-    //   filter["user._id"] = {
-    //     $eq: Types.ObjectId(filerUserId),
-    //   };
-    // } else if (userId) {
-    //   filter["user._id"] = {
-    //     $not: {
-    //       $eq: Types.ObjectId(userId),
-    //     },
-    //   };
-    // }
+    if (filerUserId) {
+      filter["user._id"] = {
+        $eq: Types.ObjectId(filerUserId),
+      };
+    } else if (userId) {
+      filter["user._id"] = {
+        $not: {
+          $eq: Types.ObjectId(userId),
+        },
+      };
+    }
     if (name) {
       filter["name"] = { $regex: new RegExp(name, "i") };
     }
