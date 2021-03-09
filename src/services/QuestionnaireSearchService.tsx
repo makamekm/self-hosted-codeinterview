@@ -9,12 +9,12 @@ export const QuestionnaireSearchService = createService(
   () => {
     const service = useLocalObservable(() => ({
       questionnairePersonalList: [] as {
-        id: string;
+        _id: string;
         name: string;
         language: Language;
       }[],
       questionnaireList: [] as {
-        id: string;
+        _id: string;
         name: string;
         language: Language;
       }[],
@@ -28,7 +28,7 @@ export const QuestionnaireSearchService = createService(
       },
       filter: {
         language: null,
-        username: "",
+        username: null,
         name: "",
         limit: 5,
       },
@@ -45,10 +45,16 @@ export const QuestionnaireSearchService = createService(
             `/api/user/all?name=${service.filter.name}&limit=${service.filter.limit}`
           ).then((res) => res.json()),
           fetch(
-            `/api/questionnaire/all?name=${service.filter.name}&language=${service.filter.language}&limit=${service.filter.limit}&username=${service.filter.username}`
+            `/api/questionnaire/all?name=${service.filter.name}&language=${
+              service.filter.language || ""
+            }&limit=${service.filter.limit}&username=${
+              service.filter.username || ""
+            }`
           ).then((res) => res.json()),
           fetch(
-            `/api/questionnaire/personal?name=${service.filter.name}&language=${service.filter.language}&limit=${service.filter.limit}`
+            `/api/questionnaire/personal?name=${service.filter.name}&language=${
+              service.filter.language || ""
+            }&limit=${service.filter.limit}`
           ).then((res) => res.json()),
         ]);
 

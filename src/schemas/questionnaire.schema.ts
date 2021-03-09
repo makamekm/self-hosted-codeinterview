@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 import { QuestionnaireDto } from "~/dto/questionnaire.dto";
 
 export const QuestionnaireSchema = new mongoose.Schema(
   {
-    id: { type: mongoose.Schema.Types.ObjectId, auto: true, index: true },
     language: { type: String, index: true },
     name: { type: String, index: true },
     date: { type: Date, default: Date.now, index: true },
@@ -15,16 +15,16 @@ export const QuestionnaireSchema = new mongoose.Schema(
     sections: [
       {
         id: {
-          type: mongoose.Schema.Types.ObjectId,
-          default: () => new mongoose.Types.ObjectId(),
+          type: String,
+          default: () => uuidv4(),
         },
         name: String,
         description: String,
         questions: [
           {
             id: {
-              type: mongoose.Schema.Types.ObjectId,
-              default: () => new mongoose.Types.ObjectId(),
+              type: String,
+              default: () => uuidv4(),
             },
             name: String,
             description: String,
@@ -36,16 +36,14 @@ export const QuestionnaireSchema = new mongoose.Schema(
     ],
   },
   {
-    _id: false,
+    _id: true,
     // capped: 1024 // in bytes
   }
 );
 
 export interface QuestionnaireDocument
   extends mongoose.Document,
-    QuestionnaireDto {
-  readonly id: string;
-}
+    QuestionnaireDto {}
 
 // QuestionnaireSchema.virtual("id").get(function () {
 //   return this._id;

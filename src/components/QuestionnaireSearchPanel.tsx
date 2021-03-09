@@ -56,10 +56,15 @@ export const QuestionnaireSearchPanel = observer(() => {
 
       <Combobox onSelect={onSelect}>
         <ComboboxInput
+          onKeyUp={(e) => {
+            if (![13, 37, 39, 38, 40].includes(e.keyCode)) {
+              service.search();
+            }
+          }}
+          onChange={onInputChange}
           value={service.filter.name}
           placeholder="Search..."
           className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
-          onChange={onInputChange}
         />
         {!service.isLoading && (
           <ComboboxPopover className="w-full text-gray-800 rounded-md mt-2">
@@ -90,7 +95,7 @@ export const QuestionnaireSearchPanel = observer(() => {
               <ComboboxList>
                 <div className="px-4 py-2 font-mono font-semibold">Users:</div>
                 {service.userList.map((user) => (
-                  <ComboboxOption key={user.id} value={"U@" + user.username}>
+                  <ComboboxOption key={user._id} value={"U@" + user.username}>
                     {user.username}
                   </ComboboxOption>
                 ))}
@@ -102,11 +107,11 @@ export const QuestionnaireSearchPanel = observer(() => {
                 <div className="px-4 py-2 font-mono font-semibold">
                   Personal Questionnaires:
                 </div>
-                {service.questionnaireList.map((questionnaire) => (
+                {service.questionnairePersonalList.map((questionnaire) => (
                   <ComboboxOption
                     className="px-4 py-2 font-mono"
-                    key={questionnaire.id}
-                    value={questionnaire.id}
+                    key={questionnaire._id}
+                    value={questionnaire._id}
                   >
                     {questionnaire.name}
                   </ComboboxOption>
@@ -122,8 +127,8 @@ export const QuestionnaireSearchPanel = observer(() => {
                 {service.questionnaireList.map((questionnaire) => (
                   <ComboboxOption
                     className="px-4 py-2 font-mono"
-                    key={questionnaire.id}
-                    value={questionnaire.id}
+                    key={questionnaire._id}
+                    value={questionnaire._id}
                   >
                     {questionnaire.name}
                   </ComboboxOption>
@@ -211,7 +216,8 @@ export const QuestionnaireSearchPanel = observer(() => {
           {service.questionnairePersonalList.map((questionnaire) => {
             return (
               <div
-                onClick={() => onSelectQuestion(questionnaire.id)}
+                key={questionnaire._id}
+                onClick={() => onSelectQuestion(questionnaire._id)}
                 className="widget mt-2 w-full p-4 rounded-lg bg-gray-900 focus-within:bg-gray-700 hover:bg-gray-700 transition-colors duration-200"
               >
                 <div className="flex flex-row items-center justify-between">

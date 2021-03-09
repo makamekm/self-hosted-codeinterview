@@ -45,7 +45,8 @@ export class QuestionnaireController {
       language,
       limit,
       username,
-      userId
+      userId,
+      true
     );
   }
 
@@ -71,13 +72,13 @@ export class QuestionnaireController {
     const userId = req.user.id;
 
     const questionnaireModel = await this.questionnaireService.get(
-      questionnaire.id,
+      questionnaire._id,
       userId
     );
 
     if (questionnaireModel == null) {
       throw new Error(
-        "Questionnaire has not been found with id: " + questionnaire.id
+        "Questionnaire has not been found with id: " + questionnaire._id
       );
     }
 
@@ -96,7 +97,7 @@ export class QuestionnaireController {
     const userModel = await this.userService.get(userId);
 
     if (userModel == null) {
-      throw new Error("User has not been found with id: " + questionnaire.id);
+      throw new Error("User has not been found with id: " + userId);
     }
 
     questionnaire.user = userModel;

@@ -4,7 +4,6 @@ import { Language } from "~/dto/language.dto";
 import { QuestionnaireDto } from "~/dto/questionnaire.dto";
 
 const getEmpty = (): QuestionnaireDto => ({
-  id: undefined,
   user: undefined,
   isPublic: false,
   language: Language.JavaScript,
@@ -28,6 +27,16 @@ export const QuestionnaireBuilderService = createService(
       },
       setEmpty() {
         service.questionnaire = getEmpty();
+      },
+      async create() {
+        const data = await fetch("/api/questionnaire", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(service.questionnaire),
+        }).then((res) => res.json());
+        console.log(data);
       },
     }));
     return service;

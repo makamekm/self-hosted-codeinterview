@@ -1,4 +1,5 @@
 export interface UserDto {
+  _id?: any;
   id: string;
   username?: string;
   email?: string;
@@ -6,4 +7,5 @@ export interface UserDto {
   lastName?: string;
   picture?: string;
   accessToken?: string;
+  _hidden?: string;
 }
