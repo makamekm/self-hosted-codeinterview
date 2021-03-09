@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiQuery, ApiTags } from "@nestjs/swagger";
 import { Language } from "~/dto/language.dto";
 import { QuestionnaireDto } from "~/dto/questionnaire.dto";
 import { JwtGuard } from "~/guards/jwt-guard";
@@ -28,30 +28,33 @@ export class QuestionnaireController {
 
   @Get("/all")
   @UseGuards(JwtOptionalGuard)
+  @ApiQuery({ name: "language", enum: Language })
+  @ApiQuery({ name: "userId", required: false })
+  @ApiQuery({ name: "limit", required: false })
   async findAll(
     @Req() req,
     @Query("name") name: string,
     @Query("language") language: Language,
-    @Query("username") username?: string,
+    @Query("userId") userId?: string,
     @Query("limit") limit?: number
   ) {
     limit = limit || 10;
     limit = Math.min(limit, 10);
 
-    const userId = req.user?.id;
-
     return this.questionnaireService.findAllExcept(
       name,
       language,
       limit,
-      username,
       userId,
+      req.user?._id,
       true
     );
   }
 
   @Get("/personal")
   @UseGuards(JwtOptionalGuard)
+  @ApiQuery({ name: "language", enum: Language })
+  @ApiQuery({ name: "limit", required: false })
   async findPersonal(
     @Req() req,
     @Query("name") name: string,

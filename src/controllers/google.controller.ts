@@ -22,13 +22,22 @@ export class GoogleController {
     @Req() req,
     @Res({ passthrough: true }) response: Response
   ) {
+    let userModel = await this.userService.get(req.user.id);
+    if (!userModel) {
+      userModel = await this.userService.create(req.user);
+    } else {
+      Object.assign(userModel, req.user);
+      userModel = await this.userService.update(userModel);
+    }
+
     const user = {
-      id: req.user.id,
-      username: req.user.username,
-      email: req.user.email,
-      firstName: req.user.firstName,
-      lastName: req.user.lastName,
-      picture: req.user.picture,
+      _id: userModel._id,
+      id: userModel.id,
+      username: userModel.username,
+      email: userModel.email,
+      firstName: userModel.firstName,
+      lastName: userModel.lastName,
+      picture: userModel.picture,
     };
     const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
     const redirectTo =
@@ -37,7 +46,7 @@ export class GoogleController {
       expires: moment(moment.now()).subtract(1, "month").toDate(),
       path: "/",
     });
-    response.cookie("session", jwt.sign(req.user, process.env.JWT_SECRET), {
+    response.cookie("session", jwt.sign(user, process.env.JWT_SECRET), {
       expires: moment(moment.now()).add(1, "month").toDate(),
       path: "/",
     });
@@ -45,13 +54,6 @@ export class GoogleController {
       expires: moment(moment.now()).add(1, "month").toDate(),
       path: "/",
     });
-
-    let userModel = await this.userService.get(req.user.id);
-    if (!userModel) await this.userService.create(req.user);
-    else {
-      Object.assign(userModel, req.user);
-      await this.userService.update(userModel);
-    }
 
     return response.redirect(redirectTo);
   }

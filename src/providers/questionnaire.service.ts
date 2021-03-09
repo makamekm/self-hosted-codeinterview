@@ -1,16 +1,18 @@
-import { Model } from "mongoose";
+import { FilterQuery, Model, Types } from "mongoose";
 import { Injectable, Inject } from "@nestjs/common";
 import { QuestionnaireDto } from "~/dto/questionnaire.dto";
 import { Language } from "~/dto/language.dto";
 import { QuestionnaireDocument } from "~/schemas/questionnaire.schema";
 import { UserService } from "./user.service";
-import { FilterQuery } from "typeorm";
+import { UserDocument } from "~/schemas/user.schema";
 
 @Injectable()
 export class QuestionnaireService {
   constructor(
     @Inject("QUESTIONNAIRE_MODEL")
     private questionnaireModel: Model<QuestionnaireDocument>,
+    @Inject("USER_MODEL")
+    private userModel: Model<UserDocument>,
     private readonly userService: UserService
   ) {}
 
@@ -32,23 +34,25 @@ export class QuestionnaireService {
     name: string,
     language: Language,
     limit: number,
-    username?: string,
+    filerUserId?: string,
     userId?: string,
     isPublic?: boolean
   ): Promise<QuestionnaireDto[]> {
     // const user = userId ? await this.userService.get(userId) : null;
     // const users = username ? await this.userService.find(username, 100) : null;
+
     const filter = {} as FilterQuery<QuestionnaireDocument>;
-    if (username) {
-      filter["user.username"] = { $regex: new RegExp(username, "i") };
-    }
-    if (userId) {
-      filter["user.id"] = {
-        $not: {
-          $eq: userId,
-        },
-      };
-    }
+    // if (filerUserId) {
+    //   filter["user._id"] = {
+    //     $eq: Types.ObjectId(filerUserId),
+    //   };
+    // } else if (userId) {
+    //   filter["user._id"] = {
+    //     $not: {
+    //       $eq: Types.ObjectId(userId),
+    //     },
+    //   };
+    // }
     if (name) {
       filter["name"] = { $regex: new RegExp(name, "i") };
     }
@@ -59,8 +63,20 @@ export class QuestionnaireService {
       filter["isPublic"] = isPublic;
     }
 
-    const docs = await this.questionnaireModel
-      .find(filter as any, {
+    const docs: QuestionnaireDto[] = await this.questionnaireModel
+      .aggregate([
+        {
+          $lookup: {
+            from: this.userModel.collection.name,
+            localField: "user",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        { $unwind: "$user" },
+        { $match: filter },
+      ])
+      .project({
         _id: 1,
         name: 1,
         user: 1,
@@ -68,14 +84,11 @@ export class QuestionnaireService {
       })
       .sort({ date: -1 })
       .limit(limit)
-      .populate("user")
       .exec();
 
-    const result = await Promise.all(docs.map((doc) => doc.toJSON()));
+    // docs.forEach((r) => delete r.user?.accessToken);
 
-    result.forEach((r) => delete r.user?.accessToken);
-
-    return result;
+    return docs;
   }
 
   async findAll(
@@ -87,8 +100,9 @@ export class QuestionnaireService {
   ): Promise<QuestionnaireDto[]> {
     const filter = {} as FilterQuery<QuestionnaireDocument>;
     if (userId) {
-      const user = userId ? await this.userService.get(userId) : null;
-      filter["user"] = user;
+      filter["user._id"] = {
+        $eq: Types.ObjectId(userId),
+      };
     }
     if (name) {
       filter["name"] = { $regex: new RegExp(name, "i") };
@@ -100,22 +114,31 @@ export class QuestionnaireService {
       filter["isPublic"] = isPublic;
     }
     const docs = await this.questionnaireModel
-      .find(filter as any, {
-        id: 1,
+      .aggregate([
+        {
+          $lookup: {
+            from: this.userModel.collection.name,
+            localField: "user",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        { $unwind: "$user" },
+        { $match: filter },
+      ])
+      .project({
+        _id: 1,
         name: 1,
         user: 1,
         language: 1,
       })
       .sort({ date: -1 })
       .limit(limit)
-      .populate("user")
       .exec();
 
-    const result = await Promise.all(docs.map((doc) => doc.toJSON()));
+    docs.forEach((r) => delete r.user?.accessToken);
 
-    result.forEach((r) => delete r.user?.accessToken);
-
-    return result;
+    return docs;
   }
 
   async get(id: string, userId?: string): Promise<QuestionnaireDto> {

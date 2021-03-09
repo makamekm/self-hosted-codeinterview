@@ -10,12 +10,12 @@ export class UserService {
     private userModel: Model<UserDocument>
   ) {}
 
-  async create(userDto: UserDto): Promise<UserDto> {
+  async create(userDto: UserDto): Promise<UserDocument> {
     const createdRecord = new this.userModel(userDto);
     return createdRecord.save();
   }
 
-  async get(id: string): Promise<UserDto> {
+  async get(id: string): Promise<UserDocument> {
     const result = await this.userModel.findOne({ id }).exec();
 
     delete result?.accessToken;
@@ -23,7 +23,7 @@ export class UserService {
     return result;
   }
 
-  async update(userDto: UserDto): Promise<UserDto> {
+  async update(userDto: UserDto): Promise<UserDocument> {
     return await this.userModel.findOneAndUpdate(
       {
         id: userDto.id,
@@ -32,7 +32,7 @@ export class UserService {
     );
   }
 
-  async find(username: string, limit: number): Promise<UserDto[]> {
+  async find(username: string, limit: number): Promise<UserDocument[]> {
     const result = await this.userModel
       .find(
         {
