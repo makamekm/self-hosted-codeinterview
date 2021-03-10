@@ -106,8 +106,9 @@ export class QuestionnaireController {
     return await this.questionnaireService.create(questionnaire);
   }
 
-  @Get(":id")
+  @Get("/:id")
+  @UseGuards(JwtOptionalGuard)
   async get(@Req() req, @Param("id") id) {
-    return await this.questionnaireService.get(id);
+    return await this.questionnaireService.get(id, req.user?.id);
   }
 }

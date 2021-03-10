@@ -4,7 +4,6 @@ import { useLocalObservable } from "mobx-react";
 import { debounce } from "ts-debounce";
 import { SocketService } from "./SocketService";
 import { Language } from "~/dto/language.dto";
-import { questionnaireList, questionnairies } from "~/demo/questionnaire";
 import { ResultQuestionnaireDto } from "~/dto/result.questionnaire.dto";
 import { RoomService } from "./RoomService";
 import { toJS } from "mobx";
@@ -17,15 +16,6 @@ export const QuestionnaireService = createService(
       roomService: null as ReturnType<typeof RoomService.useState>,
       questionnaire: null as ResultQuestionnaireDto,
       questionnairePrev: null as ResultQuestionnaireDto,
-      questionnaireList: [] as {
-        id: string;
-        name: string;
-        language: Language;
-      }[],
-      searchQuestionarieLanguage: Language.JavaScript,
-      searchQuestionarieName: "",
-      searchQuestionarieLimit: 10,
-      _debounceSearch: null as () => void,
       isLoadingList: false,
       isLoadingQuestionaire: false,
       _syncQuestionnaire() {
@@ -58,33 +48,12 @@ export const QuestionnaireService = createService(
         if (id == null) {
           service.questionnaire = null;
         } else {
-          await new Promise((r) => setTimeout(r, 1000)); // DEMO
-          service.questionnaire = JSON.parse(
-            JSON.stringify(questionnairies.find((q) => q.id === id))
-          );
+          service.questionnaire = await fetch(
+            `/api/questionnaire/${id}`
+          ).then((res) => res.json());
         }
         await service.save();
         service.isLoadingQuestionaire = false;
-      },
-      async _search() {
-        await new Promise((r) => setTimeout(r, 1000)); // DEMO
-        service.questionnaireList.splice(
-          0,
-          service.questionnaireList.length,
-          ...questionnaireList
-            .filter(
-              (q) =>
-                q.language === service.searchQuestionarieLanguage &&
-                (!service.searchQuestionarieName ||
-                  q.name.includes(service.searchQuestionarieName))
-            )
-            .slice(0, service.searchQuestionarieLimit - 1)
-        );
-        service.isLoadingList = false;
-      },
-      async search() {
-        service.isLoadingList = true;
-        await service._debounceSearch();
       },
       async _onChange(diff) {
         await service.roomService.emit("room-questionnaire", {
@@ -98,15 +67,11 @@ export const QuestionnaireService = createService(
   (service) => {
     service.socketService = React.useContext(SocketService);
     service.roomService = React.useContext(RoomService);
-    service._debounceSearch = debounce(service._search, 100);
     service.syncQuestionnaire = debounce(service._syncQuestionnaire, 100);
     service.socketService.useOn(
       "room-questionnaire",
       service.onQuestionnaireUpdate
     );
-    React.useEffect(() => {
-      if (global.window) service.search();
-    });
     // useOnChangeDiff(service, "questionnaire", service._onChange, 100);
   }
 );

@@ -7,6 +7,7 @@ import "@reach/dialog/styles.css";
 import { Listbox, ListboxOption } from "@reach/listbox";
 import "@reach/listbox/styles.css";
 import { LanguageName } from "~/dto/language.dto";
+import { QuestionnaireSearchPanel } from "./QuestionnaireSearchPanel";
 
 export const QuestionarieSelectPanel = observer(() => {
   const questionnaireService = useContext(QuestionnaireService);
@@ -35,25 +36,11 @@ export const QuestionarieSelectPanel = observer(() => {
   );
   const openSelectDialog = useCallback(() => setShowSelectDialog(true), []);
   const closeSelectDialog = useCallback(() => setShowSelectDialog(false), []);
-  const onChangeSearchName = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      questionnaireService.searchQuestionarieName = event.currentTarget.value;
-      questionnaireService.search();
-    },
-    [questionnaireService]
-  );
-  const onChangeSearchLanguage = useCallback(
-    (value) => {
-      questionnaireService.searchQuestionarieLanguage = value;
-      questionnaireService.search();
-    },
-    [questionnaireService]
-  );
   const onResetQuestionaire = useCallback(() => {
     openWarnDialog(null);
   }, [openWarnDialog]);
   const onClickItem = useCallback(
-    (id: string) => () => {
+    (id: string) => {
       if (!questionnaireService.questionnaire) {
         questionnaireService.select(id);
         closeSelectDialog();
@@ -87,80 +74,19 @@ export const QuestionarieSelectPanel = observer(() => {
         onDismiss={closeSelectDialog}
         aria-label="Select Questionaire Dialog"
       >
-        <div className="flex flex-row justify-items-center items-center space-x-2">
-          <div className="w-1/4">
-            <Listbox
-              className="w-full"
-              value={questionnaireService.searchQuestionarieLanguage}
-              onChange={onChangeSearchLanguage}
-            >
-              {Object.keys(LanguageName).map((language) => (
-                <ListboxOption key={language} value={language}>
-                  {LanguageName[language]}
-                </ListboxOption>
-              ))}
-            </Listbox>
-          </div>
-          <input
-            value={questionnaireService.searchQuestionarieName}
-            onChange={onChangeSearchName}
-            type="search"
-            name="search"
-            placeholder="Search..."
-            className="py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
-          />
-          {!!questionnaireService.questionnaire && (
-            <button
-              onClick={onResetQuestionaire}
-              className="outline-none focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50 bg-red-500 rounded-md font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-red-600 focus:bg-red-600"
-            >
-              Reset Questionaire
-            </button>
-          )}
-        </div>
-
-        {questionnaireService.isLoadingList ? (
-          <div className="loader mt-4" />
-        ) : (
-          <div className="pt-2">
-            {questionnaireService.questionnaireList.map((questionnaire) => {
-              return (
-                <div
-                  onClick={onClickItem(questionnaire.id)}
-                  className="widget mt-2 w-full p-4 rounded-lg bg-gray-900 focus-within:bg-gray-700 hover:bg-gray-700 transition-colors duration-200"
-                >
-                  <div className="flex flex-row items-center justify-between">
-                    <div className="flex flex-col">
-                      <div className="text-xs uppercase font-light text-gray-500">
-                        {LanguageName[questionnaire.language]}
-                      </div>
-                      <div className="text-xl font-bold">
-                        {questionnaire.name}
-                      </div>
-                    </div>
-                    {/* <svg
-                      className="stroke-current text-gray-500"
-                      fill="none"
-                      height="24"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      viewbox="0 0 24 24"
-                      width="24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="9" cy="7" r="4"></circle>
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg> */}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <QuestionnaireSearchPanel
+          onSelect={onClickItem}
+          addon={
+            !!questionnaireService.questionnaire && (
+              <button
+                onClick={onResetQuestionaire}
+                className="outline-none focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50 bg-red-500 rounded-md font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-red-600 focus:bg-red-600"
+              >
+                Reset Questionaire
+              </button>
+            )
+          }
+        />
       </Dialog>
       {showWarnDialog.show && (
         <AlertDialog

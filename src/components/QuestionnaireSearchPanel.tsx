@@ -4,7 +4,13 @@ import { LanguageName } from "~/dto/language.dto";
 import { observer } from "mobx-react";
 
 export const QuestionnaireSearchPanel = observer(
-  ({ onSelect }: { onSelect: (id: string) => void }) => {
+  ({
+    onSelect,
+    addon,
+  }: {
+    onSelect: (id: string) => void;
+    addon?: JSX.Element;
+  }) => {
     const service = useContext(QuestionnaireSearchService);
     const onInputChange = (event) => {
       service.filter.name = event.target.value;
@@ -12,13 +18,16 @@ export const QuestionnaireSearchPanel = observer(
     };
     return (
       <div className="w-full flex-col justify-items-stretch items-stretch space-y-2">
-        <input
-          onChange={onInputChange}
-          value={service.filter.name}
-          placeholder="Search..."
-          type="search"
-          className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
-        />
+        <div className="flex flex-row justify-between items-stretch space-x-2">
+          <input
+            onChange={onInputChange}
+            value={service.filter.name}
+            placeholder="Search..."
+            type="search"
+            className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
+          />
+          {addon}
+        </div>
 
         {!!(service.filter.language || service.filter.user) && (
           <div className="flex flex-wrap flex-row space-x-2">

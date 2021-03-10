@@ -94,14 +94,32 @@ export class QuestionnaireService {
   }
 
   async get(id: string, userId?: string): Promise<QuestionnaireDocument> {
-    const user = await this.userService.get(userId);
-    const doc = await this.questionnaireModel
-      .findOne({
-        _id: id,
-        user: user,
-      })
-      .populate("user")
-      .exec();
+    let doc: QuestionnaireDocument;
+    if (userId) {
+      const user = await this.userService.get(userId);
+      doc = await this.questionnaireModel
+        .findOne({
+          _id: id,
+          $or: [
+            {
+              user: user,
+            },
+            {
+              isPublic: true,
+            },
+          ],
+        })
+        .populate("user")
+        .exec();
+    } else {
+      doc = await this.questionnaireModel
+        .findOne({
+          _id: id,
+          isPublic: true,
+        })
+        .populate("user")
+        .exec();
+    }
 
     delete doc?.user?.accessToken;
 
