@@ -48,7 +48,7 @@ body {
   max-width: 400px !important;
   line-break: auto !important;
   white-space: pre-line !important;
-  z-index: 999;
+  z-index: 51 !important;
 }
 
 [data-reach-dialog-content] {
