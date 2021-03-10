@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -85,7 +86,10 @@ export class QuestionnaireController {
     questionnaireModel.language = questionnaire.language;
     questionnaireModel.sections = questionnaire.sections;
 
-    return await this.questionnaireService.update(questionnaireModel);
+    return await this.questionnaireService.update(
+      questionnaireModel,
+      req.user._id
+    );
   }
 
   @Put()
@@ -97,6 +101,14 @@ export class QuestionnaireController {
       throw new Error("User has not been found with id: " + req.user._id);
     }
 
+    delete questionnaire._id;
+    questionnaire.sections.forEach((section) => {
+      delete section["_id"];
+      section.questions.forEach((question) => {
+        delete question["_id"];
+      });
+    });
+
     questionnaire.user = userModel;
 
     return await this.questionnaireService.create(questionnaire);
@@ -106,5 +118,11 @@ export class QuestionnaireController {
   @UseGuards(JwtOptionalGuard)
   async get(@Req() req, @Param("id") id) {
     return await this.questionnaireService.get(id, req.user?._id);
+  }
+
+  @Delete("/:id")
+  @UseGuards(JwtGuard)
+  async delete(@Req() req, @Param("id") id) {
+    return await this.questionnaireService.delete(id, req.user._id);
   }
 }

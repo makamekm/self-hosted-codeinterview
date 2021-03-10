@@ -4,21 +4,14 @@ import { useLocalObservable } from "mobx-react";
 import { SocketService } from "./SocketService";
 import { NextRouter, useRouter } from "next/router";
 import Cookies from "js-cookie";
+import { UserDto } from "~/dto/user.dto";
 
 export const UserService = createService(
   () => {
     const service = useLocalObservable(() => ({
       router: null as NextRouter,
       socketService: null as ReturnType<typeof SocketService.useState>,
-      user: null as {
-        id: string;
-        username: string;
-        email: string;
-        firstName: string;
-        lastName: string;
-        picture: string;
-        accessToken: string;
-      },
+      user: null as UserDto,
       isCreating: false,
       loginGoogle() {
         Cookies.set("redirect_to", window.location.pathname, {

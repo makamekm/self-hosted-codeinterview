@@ -16,7 +16,7 @@ export const TopPanel = () => {
             <div>Code Interview</div>
           </div>
         </Link>
-        <div className="px-4 py-2">|</div>
+        {/* <div className="px-4 py-2">|</div>
         <Link href="/presentation">
           <div
             className={classNames(
@@ -41,7 +41,7 @@ export const TopPanel = () => {
           >
             Enterprise Prices
           </div>
-        </Link>
+        </Link> */}
       </div>
       <div className="flex flex-row justify-between items-center text-sm font-semibold font-mono">
         <Link href="/questionnaire">

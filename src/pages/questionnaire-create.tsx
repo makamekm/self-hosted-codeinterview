@@ -1,10 +1,11 @@
 import { observer } from "mobx-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import React, { useContext, useEffect } from "react";
+import React, { useCallback, useContext, useEffect } from "react";
 // import { QuestionarieBuilder } from "~/components/QuestionarieBuilder";
 import { TopPanel } from "~/components/TopPanel";
 import { QuestionnaireBuilderService } from "~/services/QuestionnaireBuilderService";
+import { UserService } from "~/services/UserService";
 
 const QuestionarieBuilder = dynamic(
   () => import("~/components/QuestionarieBuilder"),
@@ -16,6 +17,7 @@ const QuestionarieBuilder = dynamic(
 const Home: React.FC = observer(() => {
   const router = useRouter();
   const service = useContext(QuestionnaireBuilderService);
+  const userService = useContext(UserService);
 
   useEffect(() => {
     service.id = router.query.id as string;
@@ -23,6 +25,11 @@ const Home: React.FC = observer(() => {
     if (service.id) service.load();
     else service.setEmpty();
   }, [router.query.id, service]);
+
+  const onCreate = useCallback(async () => {
+    const id = await service.create();
+    router.push({ pathname: "/questionnaire/[id]", query: { id } });
+  }, [service, router]);
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen min-w-full">
@@ -36,7 +43,7 @@ const Home: React.FC = observer(() => {
             DUPLICATE
           </button> */}
           <button
-            onClick={service.create}
+            onClick={onCreate}
             className="cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50 bg-blue-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-blue-600"
           >
             SAVE

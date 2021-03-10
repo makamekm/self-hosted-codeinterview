@@ -24,12 +24,18 @@ export class QuestionnaireService {
   }
 
   async update(
-    questionnaireDto: QuestionnaireDto
+    questionnaireDto: QuestionnaireDto,
+    userId: string
   ): Promise<QuestionnaireDocument> {
-    return await this.questionnaireModel.findByIdAndUpdate(
-      questionnaireDto._id,
+    const user = await this.userService.get(userId);
+    await this.questionnaireModel.findOneAndUpdate(
+      {
+        _id: questionnaireDto._id,
+        user,
+      },
       questionnaireDto
     );
+    return this.get(questionnaireDto._id, userId);
   }
 
   async find(
@@ -124,5 +130,16 @@ export class QuestionnaireService {
     delete doc?.user?.accessToken;
 
     return doc;
+  }
+
+  async delete(id: string, userId: string) {
+    const user = await this.userService.get(userId);
+    const result = await this.questionnaireModel
+      .deleteOne({
+        _id: id,
+        user: user,
+      })
+      .exec();
+    return result.ok;
   }
 }
