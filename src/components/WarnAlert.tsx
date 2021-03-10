@@ -30,7 +30,7 @@ export const WarnDialog = observer(
       <>
         {showWarnDialog && (
           <AlertDialog
-            aria-label="Warning about applying questionaire"
+            aria-label="Warning alert"
             onDismiss={closeWarnDialog}
             leastDestructiveRef={closeWarnRef}
           >
