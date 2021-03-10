@@ -7,5 +7,5 @@ export interface UserDto {
   lastName?: string;
   picture?: string;
   accessToken?: string;
-  _hidden?: string;
+  provider?: string;
 }

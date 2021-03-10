@@ -1,4 +1,4 @@
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { Injectable, Inject } from "@nestjs/common";
 import { UserDto } from "~/dto/user.dto";
 import { UserDocument } from "~/schemas/user.schema";
@@ -15,8 +15,28 @@ export class UserService {
     return createdRecord.save();
   }
 
+  async getByIdAndProvider(
+    id: string,
+    provider: string
+  ): Promise<UserDocument> {
+    const result = await this.userModel
+      .findOne({
+        id: id,
+        provider: provider,
+      })
+      .exec();
+
+    delete result?.accessToken;
+
+    return result;
+  }
+
   async get(id: string): Promise<UserDocument> {
-    const result = await this.userModel.findOne({ id }).exec();
+    const result = await this.userModel
+      .findOne({
+        _id: Types.ObjectId(id),
+      })
+      .exec();
 
     delete result?.accessToken;
 
@@ -26,7 +46,7 @@ export class UserService {
   async update(userDto: UserDto): Promise<UserDocument> {
     return await this.userModel.findOneAndUpdate(
       {
-        id: userDto.id,
+        _id: Types.ObjectId(userDto._id),
       },
       userDto
     );

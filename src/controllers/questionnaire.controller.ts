@@ -70,11 +70,9 @@ export class QuestionnaireController {
   @Post()
   @UseGuards(JwtGuard)
   async update(@Req() req, @Body() questionnaire: QuestionnaireDto) {
-    const userId = req.user.id;
-
     const questionnaireModel = await this.questionnaireService.get(
       questionnaire._id,
-      userId
+      req.user._id
     );
 
     if (questionnaireModel == null) {
@@ -93,12 +91,10 @@ export class QuestionnaireController {
   @Put()
   @UseGuards(JwtGuard)
   async create(@Req() req, @Body() questionnaire: QuestionnaireDto) {
-    const userId = req.user.id;
-
-    const userModel = await this.userService.get(userId);
+    const userModel = await this.userService.get(req.user._id);
 
     if (userModel == null) {
-      throw new Error("User has not been found with id: " + userId);
+      throw new Error("User has not been found with id: " + req.user._id);
     }
 
     questionnaire.user = userModel;
@@ -109,6 +105,6 @@ export class QuestionnaireController {
   @Get("/:id")
   @UseGuards(JwtOptionalGuard)
   async get(@Req() req, @Param("id") id) {
-    return await this.questionnaireService.get(id, req.user?.id);
+    return await this.questionnaireService.get(id, req.user?._id);
   }
 }

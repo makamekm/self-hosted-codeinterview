@@ -11,6 +11,7 @@ export const UserSchema = new mongoose.Schema(
     lastName: String,
     picture: String,
     accessToken: String,
+    provider: String,
   },
   {
     _id: true,

@@ -22,7 +22,11 @@ export class GoogleController {
     @Req() req,
     @Res({ passthrough: true }) response: Response
   ) {
-    let userModel = await this.userService.get(req.user.id);
+    req.user.provider = "google";
+    let userModel = await this.userService.getByIdAndProvider(
+      req.user.id,
+      req.user.provider
+    );
     if (!userModel) {
       userModel = await this.userService.create(req.user);
     } else {
@@ -38,6 +42,7 @@ export class GoogleController {
       firstName: userModel.firstName,
       lastName: userModel.lastName,
       picture: userModel.picture,
+      provider: userModel.provider,
     };
     const cookies = req.headers.cookie ? cookie.parse(req.headers.cookie) : {};
     const redirectTo =
