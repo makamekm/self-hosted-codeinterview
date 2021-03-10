@@ -54,6 +54,7 @@ body {
 [data-reach-dialog-content] {
   background-color: #282a36 !important;
   color: #ddd !important;
+  @apply rounded-md;
 }
 
 .ql-editor.ql-blank::before {
