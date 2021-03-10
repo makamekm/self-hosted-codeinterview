@@ -56,6 +56,44 @@ body {
   color: #ddd !important;
 }
 
+.ql-editor.ql-blank::before {
+  color: inherit !important;
+  opacity: 0.5;
+  left: 0 !important;
+  font-style: unset !important;
+  @apply font-normal text-sm;
+}
+
+.ql-editor a[href]::before,
+.ql-editor a[href]::after {
+  z-index: 999;
+  /* left: 0 !important; */
+  left: unset !important;
+  right: 0 !important;
+  /* bottom: 0 !important; */
+  transform: translate(105%, -25%) !important;
+}
+
+.ql-editor a[href]::after {
+  display: none !important;
+}
+
+.ql-editor {
+  padding: 0 !important;
+}
+
+.ql-tooltip-arrow {
+  display: none !important;
+}
+
+.ql-toolbar {
+  @apply bg-gray-500 rounded-md;
+}
+
+.quill {
+  @apply w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus-within:outline-none focus-within:bg-white focus-within:text-gray-900 flex-1 transition-colors duration-200;
+}
+
 .loader {
   @apply flex flex-row justify-center items-center;
 }

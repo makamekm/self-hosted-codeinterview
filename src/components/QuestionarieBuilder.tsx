@@ -9,6 +9,10 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { useContext } from "react";
 import { Listbox, ListboxOption } from "@reach/listbox";
 import "@reach/listbox/styles.css";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import "react-quill/dist/quill.bubble.css";
+
 import { Language, LanguageName, LanguageType } from "~/dto/language.dto";
 import { reorder, move } from "~/utils/dnd.util";
 import { QuestionnaireBuilderService } from "~/services/QuestionnaireBuilderService";
@@ -70,12 +74,12 @@ const Question = observer(
             />
           </div>
           {(!service.readOnly || !!question.description) && (
-            <input
+            <ReactQuill
               readOnly={service.readOnly}
-              value={question.description || ""}
+              theme={"bubble"}
               placeholder="Question Description"
-              className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
-              onChange={(e) => (question.description = e.currentTarget.value)}
+              value={question.description || ""}
+              onChange={(value) => (question.description = value)}
             />
           )}
           <Listbox
@@ -175,12 +179,13 @@ const Section = observer(
           </div>
           <div className="border-gray-600 border-t space-y-8 px-2 py-2">
             {(!service.readOnly || !!section.description) && (
-              <input
+              <ReactQuill
                 readOnly={service.readOnly}
-                value={section.description || ""}
+                theme={"bubble"}
                 placeholder="Section Description"
-                className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
-                onChange={(e) => (section.description = e.currentTarget.value)}
+                className="w-full py-1 px-1 text-sm text-white bg-gray-900 rounded-md focus-within:outline-none focus-within:bg-white focus-within:text-gray-900 flex-1 transition-colors duration-200"
+                value={section.description || ""}
+                onChange={(value) => (section.description = value)}
               />
             )}
 
