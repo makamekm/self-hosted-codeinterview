@@ -21,6 +21,7 @@ import {
   QuestionnaireSectionQuestionDto,
 } from "~/dto/questionnaire.dto";
 import { Toggle } from "./Toggle";
+import { WarnDialog } from "./WarnAlert";
 
 const Question = observer(
   ({
@@ -54,14 +55,21 @@ const Question = observer(
               Question #{index + 1}
             </div>
             {!service.readOnly && (
-              <div
-                onClick={() => {
+              <WarnDialog
+                onApprove={() => {
                   section.questions.splice(index, 1);
                 }}
-                className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
+                text="Removing the question cannot be reverted."
               >
-                Remove
-              </div>
+                {({ open }) => (
+                  <div
+                    onClick={open}
+                    className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
+                  >
+                    Remove
+                  </div>
+                )}
+              </WarnDialog>
             )}
           </div>
           <div className="w-full text-center font-semibold text-base">
@@ -148,14 +156,21 @@ const Section = observer(
             />
             {!service.readOnly && (
               <>
-                <div
-                  onClick={() => {
+                <WarnDialog
+                  onApprove={() => {
                     service.questionnaire.sections.splice(index, 1);
                   }}
-                  className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
+                  text="Removing the question cannot be reverted."
                 >
-                  Remove
-                </div>
+                  {({ open }) => (
+                    <div
+                      onClick={open}
+                      className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
+                    >
+                      Remove
+                    </div>
+                  )}
+                </WarnDialog>
                 <div
                   onClick={() => {
                     if (index !== 0)
@@ -183,7 +198,6 @@ const Section = observer(
                 readOnly={service.readOnly}
                 theme={"bubble"}
                 placeholder="Section Description"
-                className="w-full py-1 px-1 text-sm text-white bg-gray-900 rounded-md focus-within:outline-none focus-within:bg-white focus-within:text-gray-900 flex-1 transition-colors duration-200"
                 value={section.description || ""}
                 onChange={(value) => (section.description = value)}
               />

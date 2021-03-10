@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import React, { useCallback, useContext, useEffect } from "react";
 import { TopPanel } from "~/components/TopPanel";
+import { WarnDialog } from "~/components/WarnAlert";
 import { QuestionnaireBuilderService } from "~/services/QuestionnaireBuilderService";
 import { UserService } from "~/services/UserService";
 
@@ -45,12 +46,19 @@ const Home: React.FC = observer(() => {
       <div className="flex-1 flex flex-col justify-start items-center w-1/2 mb-4 space-y-4">
         <div className="w-full flex flex-row items-stretch justify-end space-x-2">
           {!service.readOnly && (
-            <button
-              onClick={onDelete}
-              className="cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50 bg-red-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-red-600"
+            <WarnDialog
+              onApprove={onDelete}
+              text="Removing the question cannot be reverted."
             >
-              DELETE
-            </button>
+              {({ open }) => (
+                <button
+                  onClick={open}
+                  className="cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50 bg-red-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-red-600"
+                >
+                  DELETE
+                </button>
+              )}
+            </WarnDialog>
           )}
           {!!userService.user && (
             <button

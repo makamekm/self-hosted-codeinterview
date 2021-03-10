@@ -64,14 +64,15 @@ body {
   @apply font-normal text-sm;
 }
 
-.ql-editor a[href]::before,
-.ql-editor a[href]::after {
+.ql-editor a[href]::before {
   z-index: 999;
   /* left: 0 !important; */
   left: unset !important;
   right: 0 !important;
   /* bottom: 0 !important; */
   transform: translate(105%, -25%) !important;
+  @apply bg-gray-500 rounded-md !important;
+  display: none !important;
 }
 
 .ql-editor a[href]::after {
