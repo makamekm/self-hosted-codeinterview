@@ -48,13 +48,17 @@ body {
   max-width: 400px !important;
   line-break: auto !important;
   white-space: pre-line !important;
-  z-index: 51 !important;
+  z-index: 50 !important;
+}
+
+[data-reach-dialog-overlay] {
+  @apply z-50 !important;
 }
 
 [data-reach-dialog-content] {
   background-color: #282a36 !important;
   color: #ddd !important;
-  @apply rounded-md;
+  @apply rounded-none sm:rounded-md w-full sm:w-11/12 md:w-10/12 lg:w-9/12 xl:w-8/12 2xl:w-7/12 !important;
 }
 
 .ql-editor.ql-blank::before {
@@ -66,7 +70,7 @@ body {
 }
 
 .ql-editor a[href]::before {
-  z-index: 999;
+  z-index: 50;
   /* left: 0 !important; */
   left: unset !important;
   right: 0 !important;
