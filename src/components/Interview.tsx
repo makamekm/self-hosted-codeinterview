@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { RoomService } from "~/services/RoomService";
 import { Tabs, TabTypes } from "~/components/Tabs";
 import { RoomInfo } from "./RoomInfo";
+import { ShareRoomLink } from "./ShareRoomLink";
 // import  from "react-codemirror2";
 
 const Editor = dynamic(() => import("~/components/Editor"), {
@@ -55,7 +56,8 @@ export const InterviewRoom: React.FC = observer(() => {
                 container = <RoomInfo />;
               }
               return (
-                <div className="relative flex-1 flex flex-col min-h-full max-h-full">
+                <div className="relative flex-1 flex flex-col min-h-full max-h-full space-x-2">
+                  {serviceRoom.client?.isManager && <ShareRoomLink />}
                   {container}
                 </div>
               );
