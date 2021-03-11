@@ -1,4 +1,5 @@
 import { observer, enableStaticRendering } from "mobx-react";
+import { ToastProvider } from "react-toast-notifications";
 import React from "react";
 import { useServiceProvider } from "react-service-provider";
 import "tailwindcss/tailwind.css";
@@ -18,8 +19,14 @@ const App = observer(({ Component, pageProps }) => {
   return (
     <ServiceProvider>
       <ServiceProviderHook>
-        <Header />
-        <Component {...pageProps} />
+        <ToastProvider
+          autoDismiss
+          autoDismissTimeout={4000}
+          placement="bottom-right"
+        >
+          <Header />
+          <Component {...pageProps} />
+        </ToastProvider>
       </ServiceProviderHook>
     </ServiceProvider>
   );

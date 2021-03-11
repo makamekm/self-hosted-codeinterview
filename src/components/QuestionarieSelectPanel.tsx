@@ -93,6 +93,7 @@ export const QuestionarieSelectPanel = observer(() => {
           aria-label="Warning about applying questionaire"
           onDismiss={closeWarnDialog}
           leastDestructiveRef={closeWarnRef}
+          className="dialog-sm"
         >
           <AlertDialogLabel>
             <h3 className="font-bold text-pink-700">Please Confirm!</h3>

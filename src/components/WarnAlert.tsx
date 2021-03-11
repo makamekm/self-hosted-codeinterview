@@ -33,6 +33,7 @@ export const WarnDialog = observer(
             aria-label="Warning alert"
             onDismiss={closeWarnDialog}
             leastDestructiveRef={closeWarnRef}
+            className="dialog-sm"
           >
             <AlertDialogLabel>
               <h3 className="font-bold text-pink-700">Please Confirm!</h3>
