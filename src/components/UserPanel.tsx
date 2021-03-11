@@ -33,7 +33,7 @@ export const UserPanel = observer(() => {
   if (!userService.user) {
     return (
       <div className="flex flex-row justify-between items-center">
-        <div className="py-2 font-thin font-mono text-sm">Login:</div>
+        <div className="py-2 font-thin font-mono text-xs">Login:</div>
         <div className="p-px bg-gray-300 rounded-full relative mx-2">
           <img
             tabIndex={0}
@@ -48,7 +48,7 @@ export const UserPanel = observer(() => {
   }
   return (
     <div className="flex flex-row justify-between items-center">
-      <div className="py-2 font-thin font-mono text-sm">
+      <div className="py-2 font-thin font-mono text-xs">
         {userService.user.username}
       </div>
       <div className="p-px bg-gray-300 rounded-full relative mx-2" ref={ref}>

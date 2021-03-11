@@ -14,9 +14,9 @@ export const ShareRoomLink = () => {
     <>
       <button
         onClick={openShareDialog}
-        className="cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50 bg-blue-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-blue-600"
+        className="cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50 bg-indigo-500 rounded-lg font-medium text-white text-xs text-center px-3 py-1 transition duration-300 ease-in-out hover:bg-indigo-600"
       >
-        SHARE
+        Share
       </button>
       <Dialog
         isOpen={showShareDialog}

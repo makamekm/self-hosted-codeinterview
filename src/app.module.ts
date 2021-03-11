@@ -17,7 +17,7 @@ import { CodeRunnerService } from "./providers/code-runner.provider";
 import { GoogleStrategy } from "./strategies/google.strategy";
 import { GoogleController } from "./controllers/google.controller";
 import { EventServiceModule } from "./providers/event.provider";
-import { databaseProviders } from "./providers/database.providers";
+import { databaseProviders } from "./config/database.providers";
 import { dataProviders } from "./config/data.providers";
 import { QuestionnaireProvider } from "./providers/questionnaire.provider";
 import { UserProvider } from "./providers/user.provider";

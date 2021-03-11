@@ -1,5 +1,6 @@
 import { Injectable, Inject, CACHE_MANAGER, Logger } from "@nestjs/common";
 import { RedisService } from "nestjs-redis";
+import { Cache } from "cache-manager";
 import { Language } from "~/dto/language.dto";
 import { ResultQuestionnaireDto } from "~/dto/result.questionnaire.dto";
 import { Room } from "~/models/Room";
