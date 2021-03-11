@@ -85,7 +85,7 @@ export const Tabs = observer(
               Room Info
             </li>
             {roomService.client?.isManager && (
-              <div className="flex justify-center items-center">
+              <div className="flex justify-center items-center px-2">
                 <Shake
                   dur={600}
                   r={10}

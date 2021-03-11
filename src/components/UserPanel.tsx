@@ -56,7 +56,7 @@ export const UserPanel = observer(() => {
           tabIndex={0}
           src={userService.user.picture}
           alt=""
-          className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+          className="w-6 h-6 max-w-6 max-h-6 min-w-6 min-h-6 rounded-full cursor-pointer hover:ring-2 hover:ring-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
           onClick={state.onToggle}
         />
         <div
