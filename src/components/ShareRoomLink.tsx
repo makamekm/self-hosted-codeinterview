@@ -13,6 +13,36 @@ export const ShareRoomLink = () => {
   const openShareDialog = useCallback(() => setShowShareDialog(true), []);
   const closeShareDialog = useCallback(() => setShowShareDialog(false), []);
 
+  const onClickSelectAll = useCallback((e) => {
+    e.currentTarget.setSelectionRange(0, e.currentTarget.value.length);
+  }, []);
+
+  const onFocusCandidate = useCallback(
+    (e) => {
+      e.currentTarget.setSelectionRange(0, e.currentTarget.value.length);
+      navigator.clipboard.writeText(`${URI}/room/${serviceRoom.id}`);
+      addToast("Candidate link has been copied!", {
+        appearance: "info",
+        autoDismiss: true,
+      });
+    },
+    [addToast, serviceRoom]
+  );
+
+  const onFocusInterviewer = useCallback(
+    (e) => {
+      e.currentTarget.setSelectionRange(0, e.currentTarget.value.length);
+      navigator.clipboard.writeText(
+        `${URI}/room/${serviceRoom.id}/${serviceRoom.managerSecret}`
+      );
+      addToast("Interviewer link has been copied!", {
+        appearance: "warning",
+        autoDismiss: true,
+      });
+    },
+    [addToast, serviceRoom]
+  );
+
   return (
     <>
       <button
@@ -32,42 +62,16 @@ export const ShareRoomLink = () => {
           <div className="font-semibold text-sm">For Candidate</div>
           <input
             className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
-            onClick={(e) => {
-              e.currentTarget.setSelectionRange(
-                0,
-                e.currentTarget.value.length
-              );
-              navigator.clipboard.writeText(`${URI}/room/${serviceRoom.id}`);
-              addToast("Candidate link has been copied!", {
-                appearance: "info",
-                autoDismiss: true,
-              });
-            }}
-            onFocus={(e) =>
-              e.currentTarget.setSelectionRange(0, e.currentTarget.value.length)
-            }
+            onClick={onClickSelectAll}
+            onFocus={onFocusCandidate}
             readOnly
             value={`${URI}/room/${serviceRoom.id}`}
           />
           <div className="font-semibold text-sm pt-4">For Interviewer</div>
           <input
             className="w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
-            onClick={(e) => {
-              e.currentTarget.setSelectionRange(
-                0,
-                e.currentTarget.value.length
-              );
-              navigator.clipboard.writeText(
-                `${URI}/room/${serviceRoom.id}/${serviceRoom.managerSecret}`
-              );
-              addToast("Interviewer link has been copied!", {
-                appearance: "warning",
-                autoDismiss: true,
-              });
-            }}
-            onFocus={(e) =>
-              e.currentTarget.setSelectionRange(0, e.currentTarget.value.length)
-            }
+            onClick={onClickSelectAll}
+            onFocus={onFocusInterviewer}
             readOnly
             value={`${URI}/room/${serviceRoom.id}/${serviceRoom.managerSecret}`}
           />

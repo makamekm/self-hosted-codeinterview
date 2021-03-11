@@ -1,6 +1,7 @@
 import classNames from "classnames";
+import { Shake } from "reshake";
 import { observer, useLocalObservable } from "mobx-react";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { RoomService } from "~/services/RoomService";
 import { ShareRoomLink } from "./ShareRoomLink";
 import { UserPanel } from "./UserPanel";
@@ -17,6 +18,7 @@ export const Tabs = observer(
   ({ render }: { render: (type: TabTypes) => JSX.Element }) => {
     const roomService = useContext(RoomService);
     const state = useLocalObservable(() => ({
+      isShakingShare: false,
       currentTab: TabTypes.Terminal,
       onClickTerminal: () => {
         state.currentTab = TabTypes.Terminal;
@@ -34,6 +36,19 @@ export const Tabs = observer(
         state.currentTab = TabTypes.Room;
       },
     }));
+
+    useEffect(() => {
+      if (global.window) {
+        let timeout = setTimeout(() => {
+          if (Object.keys(roomService.room?.clients || {}).length < 2) {
+            state.isShakingShare = true;
+            timeout = setTimeout(() => (state.isShakingShare = false), 1500);
+          }
+        }, 1000);
+        return () => clearTimeout(timeout);
+      }
+    }, [roomService, state]);
+
     return (
       <>
         <div className="border-b border-gray-700 flex flex-row justify-between items-center text-xs">
@@ -71,7 +86,15 @@ export const Tabs = observer(
             </li>
             {roomService.client?.isManager && (
               <div className="flex justify-center items-center">
-                <ShareRoomLink />
+                <Shake
+                  dur={600}
+                  r={10}
+                  int={15}
+                  fixed
+                  active={state.isShakingShare}
+                >
+                  <ShareRoomLink />
+                </Shake>
               </div>
             )}
             {/* <li
