@@ -74,6 +74,7 @@ body {
   transform: translate(105%, -25%) !important;
   @apply bg-gray-500 rounded-md !important;
   display: none !important;
+  @apply text-sm;
 }
 
 .ql-editor a[href]::after {
@@ -82,6 +83,7 @@ body {
 
 .ql-editor {
   padding: 0 !important;
+  @apply text-sm;
 }
 
 .ql-tooltip-arrow {
@@ -93,6 +95,7 @@ body {
 }
 
 .quill {
+  min-height: 36px;
   @apply w-full py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus-within:outline-none focus-within:bg-white focus-within:text-gray-900 flex-1 transition-colors duration-200;
 }
 

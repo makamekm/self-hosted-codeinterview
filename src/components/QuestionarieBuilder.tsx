@@ -10,7 +10,6 @@ import { useContext } from "react";
 import { Listbox, ListboxOption } from "@reach/listbox";
 import "@reach/listbox/styles.css";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 import "react-quill/dist/quill.bubble.css";
 
 import { Language, LanguageName, LanguageType } from "~/dto/language.dto";

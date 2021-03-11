@@ -1,12 +1,19 @@
 import { observer } from "mobx-react";
 import classNames from "classnames";
+import AceEditor from "react-ace";
+import "ace-builds/src-noconflict/mode-java";
+import "ace-builds/src-noconflict/mode-typescript";
+import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/theme-dracula";
 import { useCallback, useContext, useState } from "react";
 import { QuestionnaireService } from "~/services/QuestionnaireService";
 import { Dialog } from "@reach/dialog";
 import "@reach/dialog/styles.css";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.bubble.css";
 import "@reach/tooltip/styles.css";
 import { GradeDto, GradeNameDto } from "~/dto/result.questionnaire.dto";
-import { LanguageName } from "~/dto/language.dto";
+import { LanguageName, LanguageType } from "~/dto/language.dto";
 
 export const QuestionarieReview = observer(() => {
   const questionnaireService = useContext(QuestionnaireService);
@@ -54,7 +61,11 @@ export const QuestionarieReview = observer(() => {
                 </div>
                 <div className="px-2 py-2 border-gray-600 border-t space-y-4">
                   {!!section.description && (
-                    <div className="text-sm px-2">{section.description}</div>
+                    <ReactQuill
+                      readOnly
+                      theme={"bubble"}
+                      value={section.description}
+                    />
                   )}
 
                   <div className="w-full flex flex-col space-y-4">
@@ -87,12 +98,35 @@ export const QuestionarieReview = observer(() => {
                           </div>
                           <div className="px-2 py-2 space-y-4">
                             {!!question.description && (
-                              <div>{question.description}</div>
+                              <ReactQuill
+                                readOnly
+                                theme={"bubble"}
+                                value={question.description}
+                              />
                             )}
                             {!!question.code && (
-                              <div className="font-mono text-xs">
-                                {question.code}
-                              </div>
+                              <AceEditor
+                                readOnly
+                                mode={
+                                  LanguageType[
+                                    question.language ||
+                                      questionnaireService.questionnaire
+                                        .language
+                                  ]
+                                }
+                                theme="dracula"
+                                minLines={1}
+                                maxLines={Infinity}
+                                className="min-w-full max-w-full min-h-full max-h-full rounded-lg"
+                                value={question.code}
+                              />
+                            )}
+                            {!!question.comment && (
+                              <ReactQuill
+                                readOnly
+                                theme={"bubble"}
+                                value={question.comment}
+                              />
                             )}
                             <div className="font-semibold text-right text-green-300">
                               {

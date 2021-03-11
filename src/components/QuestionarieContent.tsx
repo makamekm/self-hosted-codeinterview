@@ -18,6 +18,8 @@ import {
   GradeNameDto,
   ResultQuestionnaireSectionQuestionDto,
 } from "~/dto/result.questionnaire.dto";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.bubble.css";
 import { LanguageName } from "~/dto/language.dto";
 import { EditorService } from "~/services/EditorService";
 import { RoomService } from "~/services/RoomService";
@@ -71,7 +73,11 @@ export const QuestionarieContent = observer(() => {
               </AccordionButton>
               <AccordionPanel className="px-2 py-2 border-gray-600 border-t space-y-4">
                 {!!section.description && (
-                  <div className="px-2">{section.description}</div>
+                  <ReactQuill
+                    readOnly
+                    theme={"bubble"}
+                    value={section.description || ""}
+                  />
                 )}
 
                 <Accordion className="w-full flex flex-col space-y-4">
@@ -104,7 +110,11 @@ export const QuestionarieContent = observer(() => {
                         </AccordionButton>
                         <AccordionPanel className="px-2 py-2 space-y-4">
                           {!!question.description && (
-                            <div>{question.description}</div>
+                            <ReactQuill
+                              readOnly
+                              theme={"bubble"}
+                              value={question.description || ""}
+                            />
                           )}
                           <div className="flex flex-row justify-between items-center w-full space-x-4">
                             <Listbox
@@ -119,11 +129,11 @@ export const QuestionarieContent = observer(() => {
                               ))}
                             </Listbox>
 
-                            <input
-                              value={question.comment}
-                              onChange={onChangeComment(question)}
+                            <ReactQuill
+                              theme={"bubble"}
                               placeholder="Comments..."
-                              className="py-2 px-4 ml-2 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 flex-1 transition-colors duration-200"
+                              value={question.comment || ""}
+                              onChange={(value) => (question.comment = value)}
                             />
 
                             {!!question.code && (

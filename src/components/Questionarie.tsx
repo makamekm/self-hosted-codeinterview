@@ -24,3 +24,5 @@ export const Questionarie = observer(() => {
     </div>
   );
 });
+
+export default Questionarie;

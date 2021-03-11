@@ -4,7 +4,6 @@ import React, { useContext } from "react";
 import { useRouter } from "next/router";
 import { RoomService } from "~/services/RoomService";
 import { Tabs, TabTypes } from "~/components/Tabs";
-import { Questionarie } from "~/components/Questionarie";
 import { RoomInfo } from "./RoomInfo";
 // import  from "react-codemirror2";
 
@@ -13,6 +12,10 @@ const Editor = dynamic(() => import("~/components/Editor"), {
 });
 
 const Terminal = dynamic(() => import("~/components/Terminal"), {
+  ssr: false,
+});
+
+const Questionarie = dynamic(() => import("~/components/Questionarie"), {
   ssr: false,
 });
 
