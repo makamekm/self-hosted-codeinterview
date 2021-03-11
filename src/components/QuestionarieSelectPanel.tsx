@@ -5,6 +5,7 @@ import { QuestionnaireService } from "~/services/QuestionnaireService";
 import { Dialog } from "@reach/dialog";
 import "@reach/dialog/styles.css";
 import { QuestionnaireSearchPanel } from "./QuestionnaireSearchPanel";
+import { CloseDialogButton } from "./CloseDialogButton";
 
 export const QuestionarieSelectPanel = observer(() => {
   const questionnaireService = useContext(QuestionnaireService);
@@ -71,6 +72,7 @@ export const QuestionarieSelectPanel = observer(() => {
         onDismiss={closeSelectDialog}
         aria-label="Select Questionaire Dialog"
       >
+        <CloseDialogButton onClick={closeSelectDialog} />
         <QuestionnaireSearchPanel
           onSelect={onClickItem}
           addon={

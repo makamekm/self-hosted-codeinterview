@@ -14,6 +14,7 @@ import "react-quill/dist/quill.bubble.css";
 import "@reach/tooltip/styles.css";
 import { GradeDto, GradeNameDto } from "~/dto/result.questionnaire.dto";
 import { LanguageName, LanguageType } from "~/dto/language.dto";
+import { CloseDialogButton } from "./CloseDialogButton";
 
 export const QuestionarieReview = observer(() => {
   const questionnaireService = useContext(QuestionnaireService);
@@ -35,6 +36,7 @@ export const QuestionarieReview = observer(() => {
         onDismiss={closeSelectDialog}
         aria-label="Select Questionaire Dialog"
       >
+        <CloseDialogButton onClick={closeSelectDialog} />
         <div className="mb-4 flex flex-row justify-between items-center">
           <div className="font-semibold text-xl">Final Review</div>
           <div className="text-gray-400">
