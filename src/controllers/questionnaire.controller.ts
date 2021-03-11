@@ -16,15 +16,15 @@ import { Language } from "~/dto/language.dto";
 import { QuestionnaireDto } from "~/dto/questionnaire.dto";
 import { JwtGuard } from "~/guards/jwt-guard";
 import { JwtOptionalGuard } from "~/guards/jwt-optional-guard";
-import { QuestionnaireService } from "~/providers/questionnaire.service";
-import { UserService } from "~/providers/user.service";
+import { QuestionnaireProvider } from "~/providers/questionnaire.provider";
+import { UserProvider } from "~/providers/user.provider";
 
 @ApiTags("Questionnaire")
 @Controller("api/questionnaire")
 export class QuestionnaireController {
   constructor(
-    private readonly questionnaireService: QuestionnaireService,
-    private readonly userService: UserService
+    private readonly questionnaireService: QuestionnaireProvider,
+    private readonly userService: UserProvider
   ) {}
 
   @Get("/all")

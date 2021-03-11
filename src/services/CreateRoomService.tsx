@@ -3,6 +3,7 @@ import { createService } from "react-service-provider";
 import { useLocalObservable } from "mobx-react";
 import { SocketService } from "./SocketService";
 import { NextRouter, useRouter } from "next/router";
+import { RoomMessage } from "~/dto/room-message.dto";
 
 export const CreateRoomService = createService(
   () => {
@@ -16,7 +17,7 @@ export const CreateRoomService = createService(
       }> {
         service.isCreating = true;
 
-        const room = await service.socketService.emit("create-room");
+        const room = await service.socketService.emit(RoomMessage.CreateRoom);
 
         service.isCreating = true;
 

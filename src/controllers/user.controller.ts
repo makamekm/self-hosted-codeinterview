@@ -1,12 +1,12 @@
 import { Controller, Get, Query, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { JwtOptionalGuard } from "~/guards/jwt-optional-guard";
-import { UserService } from "~/providers/user.service";
+import { UserProvider } from "~/providers/user.provider";
 
 @ApiTags("User")
 @Controller("api/user")
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserProvider) {}
 
   @Get("/all")
   @UseGuards(JwtOptionalGuard)

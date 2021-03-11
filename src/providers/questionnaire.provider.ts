@@ -3,17 +3,17 @@ import { Injectable, Inject } from "@nestjs/common";
 import { QuestionnaireDto } from "~/dto/questionnaire.dto";
 import { Language } from "~/dto/language.dto";
 import { QuestionnaireDocument } from "~/schemas/questionnaire.schema";
-import { UserService } from "./user.service";
+import { UserProvider } from "./user.provider";
 import { UserDocument } from "~/schemas/user.schema";
 
 @Injectable()
-export class QuestionnaireService {
+export class QuestionnaireProvider {
   constructor(
     @Inject("QUESTIONNAIRE_MODEL")
     private questionnaireModel: Model<QuestionnaireDocument>,
     @Inject("USER_MODEL")
     private userModel: Model<UserDocument>,
-    private readonly userService: UserService
+    private readonly userService: UserProvider
   ) {}
 
   async create(

@@ -2,6 +2,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Strategy, VerifyCallback } from "passport-google-oauth20";
 
 import { Injectable } from "@nestjs/common";
+import { GOOGLE_AUTH_REDIRRECT } from "@env/config";
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
@@ -9,7 +10,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
     super({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_SECRET,
-      callbackURL: "https://makame.rowanberry.xyz/api/google/redirect",
+      callbackURL: GOOGLE_AUTH_REDIRRECT,
       scope: ["email", "profile"],
     });
   }

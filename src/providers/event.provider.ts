@@ -114,7 +114,7 @@ export const EventSubscribe = (topic: string): any => {
 };
 
 @Injectable()
-export class EventService {
+export class EventProvider {
   constructor(private readonly redisService: RedisService) {}
 
   subscribers: (() => void)[];
@@ -130,13 +130,13 @@ export class EventService {
 
 @Module({
   imports: [],
-  providers: [MetadataScanner, EventService, EventServiceSubscriberExplorer],
-  exports: [EventService],
+  providers: [MetadataScanner, EventProvider, EventServiceSubscriberExplorer],
+  exports: [EventProvider],
 })
 export class EventServiceModule implements OnModuleInit {
   constructor(
     private readonly explorer: EventServiceSubscriberExplorer,
-    private readonly eventService: EventService
+    private readonly eventService: EventProvider
   ) {}
 
   async onModuleInit() {

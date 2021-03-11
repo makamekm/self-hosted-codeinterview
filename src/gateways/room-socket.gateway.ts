@@ -9,96 +9,29 @@ import {
 import { CACHE_MANAGER, Inject, Logger, UseGuards } from "@nestjs/common";
 import { Socket, Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
-import { applyDiff } from "~/utils/diff.util";
 import rug from "random-username-generator";
 import { Cache } from "cache-manager";
 import { RedisService } from "nestjs-redis";
-import { debounce } from "ts-debounce";
-import { CodeRunnerService } from "./code-runner.provider";
+import { CodeRunnerService } from "../providers/code-runner.provider";
 import { WsJwtGuard } from "~/guards/ws-jwt-guard";
 import { UserDto } from "~/dto/user.dto";
 import { RoomClientDto, RoomDto } from "~/dto/room.dto";
 import { ErrorDto } from "~/dto/error.dto";
 import { ResultQuestionnaireDto } from "~/dto/result.questionnaire.dto";
-import { EventService, EventSubscribe } from "./event.service";
+import {
+  EventProvider,
+  EventSubscribe as SubscribeEvent,
+} from "../providers/event.provider";
 import { Language } from "~/dto/language.dto";
+import { Room } from "~/models/Room";
+import { RoomClient } from "~/models/RoomClient";
+import { webSocketGatewayConfig } from "~/config/web-socket-gateway-config";
+import { RoomProvider } from "~/providers/room.provider";
+import { RoomMessage } from "~/dto/room-message.dto";
+import { EventMessage } from "~/dto/event-message.dto";
 
-class RoomClient implements RoomClientDto {
-  id: string = "";
-  socket: Socket;
-  username: string;
-  isManager: boolean = false;
-
-  constructor(
-    id: string,
-    socket: Socket,
-    username: string,
-    isManager: boolean = false
-  ) {
-    this.id = id;
-    this.socket = socket;
-    this.username = username;
-    this.isManager = isManager;
-  }
-
-  serialize(): RoomClientDto {
-    return {
-      id: this.id,
-      isManager: this.isManager,
-      username: this.username,
-    };
-  }
-}
-
-class Room implements RoomDto {
-  id: string = "";
-  text: string = "";
-  managerSecret: string = "";
-  language: Language = Language.JavaScript;
-  questionnaire: ResultQuestionnaireDto;
-  clients: {
-    [id: string]: RoomClient;
-  } = {};
-
-  storeDebounceFn: () => void;
-
-  constructor(
-    id: string,
-    managerSecret: string,
-    storeFn: (room: Room) => Promise<void>
-  ) {
-    this.id = id;
-    this.managerSecret = managerSecret;
-    this.storeDebounceFn = debounce(() => storeFn(this), 1000);
-  }
-
-  serialize(): RoomDto {
-    return {
-      id: this.id,
-      text: this.text,
-      clients: Object.keys(this.clients).reduce((acc, key) => {
-        acc[key] = this.clients[key].serialize();
-        return acc;
-      }, {}),
-      language: this.language,
-    };
-  }
-}
-
-@WebSocketGateway({
-  handlePreflightRequest: (req, res) => {
-    const headers = {
-      "Access-Control-Allow-Headers": "Content-Type, authorization, x-token",
-      "Access-Control-Allow-Origin": req.headers.origin,
-      "Access-Control-Allow-Credentials": true,
-      "Access-Control-Max-Age": "1728000",
-      "Content-Length": "0",
-    };
-    res.writeHead(200, headers);
-    res.end();
-  },
-} as any)
-export class AppGateway
+@WebSocketGateway(webSocketGatewayConfig)
+export class RoomSocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
@@ -106,73 +39,36 @@ export class AppGateway
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly redisService: RedisService,
     private readonly codeRunnerService: CodeRunnerService,
-    private readonly eventService: EventService
+    private readonly eventService: EventProvider,
+    private readonly roomService: RoomProvider
   ) {}
 
-  private logger: Logger = new Logger("AppGateway");
+  private logger: Logger = new Logger("RoomSocketGateway");
 
-  rooms: {
-    [id: string]: Room;
-  } = {};
-
-  sendLocalRoomExcept(
-    room: Room,
-    clientId: string,
-    filter: {
-      isManagersOnly?: boolean;
-    },
-    event: string,
-    ...args: any
-  ) {
-    for (const key of Object.keys(room.clients)) {
-      if (key !== clientId && room.clients[key].socket) {
-        if (!filter.isManagersOnly || room.clients[key].isManager) {
-          room.clients[key].socket.emit(event, ...args);
-        }
-      }
-    }
-  }
-
-  sendLocalRoom(
-    room: Room,
-    filter: {
-      isManagersOnly?: boolean;
-    },
-    event: string,
-    ...args: any
-  ) {
-    for (const key of Object.keys(room.clients)) {
-      if (room.clients[key].socket) {
-        if (!filter.isManagersOnly || room.clients[key].isManager) {
-          room.clients[key].socket.emit(event, ...args);
-        }
-      }
-    }
-  }
-
-  @EventSubscribe("room-send-client-except")
+  @SubscribeEvent(EventMessage.RoomSendClientExcept)
   onSubRoomSendClientExcept(roomId, clientId, filter, event, ...args) {
-    if (this.rooms[roomId]) {
-      this.sendLocalRoomExcept(
-        this.rooms[roomId],
-        clientId,
-        filter,
-        event,
-        ...args
-      );
-    }
+    this.roomService.sendLocalRoomExcept(
+      this.roomService.rooms[roomId],
+      clientId,
+      filter,
+      event,
+      ...args
+    );
   }
 
-  @EventSubscribe("room-send-client")
+  @SubscribeEvent(EventMessage.RoomSendClient)
   onSubRoomSendClient(roomId, filter, event, ...args) {
-    if (this.rooms[roomId]) {
-      this.sendLocalRoom(this.rooms[roomId], filter, event, ...args);
-    }
+    this.roomService.sendLocalRoom(
+      this.roomService.rooms[roomId],
+      filter,
+      event,
+      ...args
+    );
   }
 
-  @EventSubscribe("room-change-language")
+  @SubscribeEvent(EventMessage.RoomChangeLanguage)
   onSubRoomChangeLanguage(roomId, language) {
-    const room = this.rooms[roomId];
+    const room = this.roomService.rooms[roomId];
 
     if (!room) {
       return {
@@ -183,9 +79,9 @@ export class AppGateway
     room.language = language;
   }
 
-  @EventSubscribe("room-change-text")
+  @SubscribeEvent(EventMessage.RoomChangeText)
   onSubRoomChangeText(roomId, text) {
-    const room = this.rooms[roomId];
+    const room = this.roomService.rooms[roomId];
 
     if (!room) {
       return {
@@ -196,64 +92,20 @@ export class AppGateway
     room.text = text;
   }
 
-  storeRoom = async (room: Room) => {
-    let result = await this.redisService.getClient().set(
-      room.id,
-      JSON.stringify({
-        id: room.id,
-        managerSecret: room.managerSecret,
-        text: room.text,
-        questionnaire: room.questionnaire,
-        language: room.language,
-      })
-    );
-    if (result) {
-      this.logger.log(
-        `Room has been cached: ${room.id} and managerKey: ${room.managerSecret}`
-      );
-    }
-  };
-
-  async restoreRoom(roomId: string) {
-    const serializedRoom = await this.redisService.getClient().get(roomId);
-    if (serializedRoom) {
-      const roomData: {
-        id: string;
-        managerSecret: string;
-        text: string;
-        questionnaire: ResultQuestionnaireDto;
-        language: Language;
-      } = JSON.parse(serializedRoom);
-      const room = new Room(
-        roomData.id,
-        roomData.managerSecret,
-        this.storeRoom
-      );
-      room.text = roomData.text;
-      room.questionnaire = roomData.questionnaire;
-      room.language = roomData.language || Language.JavaScript;
-      this.rooms[room.id] = room;
-
-      this.logger.log(
-        `Room has been restored from cache: ${room.id} and managerKey: ${room.managerSecret}`
-      );
-    }
-  }
-
-  @SubscribeMessage("create-room")
+  @SubscribeMessage(RoomMessage.CreateRoom)
   async makeRoom(client: Socket): Promise<RoomDto | ErrorDto> {
     const id = uuidv4();
     const managerSecret = uuidv4();
 
-    let room = new Room(id, managerSecret, this.storeRoom);
+    let room = new Room(id, managerSecret, this.roomService.storeRoom);
 
-    this.rooms[room.id] = room;
+    this.roomService.rooms[room.id] = room;
 
     this.logger.log(
       `Room has been created: ${id} and managerKey: ${managerSecret} by ${client.id}`
     );
 
-    await this.storeRoom(room);
+    await this.roomService.storeRoom(room);
 
     // TODO: serialize
     return {
@@ -262,7 +114,7 @@ export class AppGateway
     };
   }
 
-  @SubscribeMessage("change-client")
+  @SubscribeMessage(RoomMessage.ChangeClient)
   async changeClient(
     client: Socket,
     [roomId, data]: [
@@ -272,11 +124,11 @@ export class AppGateway
       }
     ]
   ): Promise<RoomClientDto | ErrorDto> {
-    if (!this.rooms[roomId]) {
-      await this.restoreRoom(roomId);
+    if (!this.roomService.rooms[roomId]) {
+      await this.roomService.restoreRoom(roomId);
     }
 
-    const room = this.rooms[roomId];
+    const room = this.roomService.rooms[roomId];
 
     if (!room) {
       return {
@@ -301,11 +153,11 @@ export class AppGateway
     };
 
     this.eventService.emit(
-      "room-send-client-except",
+      EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
       {},
-      "room-change-client",
+      RoomMessage.RoomChangeClient,
       clientData
     );
 
@@ -316,7 +168,7 @@ export class AppGateway
     };
   }
 
-  @SubscribeMessage("execute-room")
+  @SubscribeMessage(RoomMessage.ExecuteRoom)
   async executeRoom(
     client: Socket,
     roomId: string
@@ -327,11 +179,11 @@ export class AppGateway
       }
     | ErrorDto
   > {
-    if (!this.rooms[roomId]) {
-      await this.restoreRoom(roomId);
+    if (!this.roomService.rooms[roomId]) {
+      await this.roomService.restoreRoom(roomId);
     }
 
-    const room = this.rooms[roomId];
+    const room = this.roomService.rooms[roomId];
 
     if (!room) {
       return {
@@ -348,10 +200,10 @@ export class AppGateway
     }
 
     this.eventService.emit(
-      "room-send-client",
+      EventMessage.RoomSendClient,
       room.id,
       {},
-      "room-start-code",
+      RoomMessage.RoomStartCode,
       `Code is being executed by ${roomClient.username}`
     );
 
@@ -364,10 +216,10 @@ export class AppGateway
       );
 
       this.eventService.emit(
-        "room-send-client",
+        EventMessage.RoomSendClient,
         room.id,
         {},
-        "room-end-code",
+        RoomMessage.RoomEndCode,
         `Code has been executed by ${roomClient.username} within ${
           result.time / 1000
         }s with exit code ${result.code}`
@@ -375,20 +227,20 @@ export class AppGateway
 
       if (result.data) {
         this.eventService.emit(
-          "room-send-client",
+          EventMessage.RoomSendClient,
           room.id,
           {},
-          "room-end-code-data",
+          RoomMessage.RoomEndCodeData,
           `Output:\n${result.data}`
         );
       }
 
       if (result.err) {
         this.eventService.emit(
-          "room-send-client",
+          EventMessage.RoomSendClient,
           room.id,
           {},
-          "room-end-code-err",
+          RoomMessage.RoomEndCodeErr,
           `Error Output:\n${result.err}`
         );
       }
@@ -400,10 +252,10 @@ export class AppGateway
       return result;
     } catch (error) {
       this.eventService.emit(
-        "room-send-client",
+        EventMessage.RoomSendClient,
         room.id,
         {},
-        "room-end-code-err",
+        RoomMessage.RoomEndCodeErr,
         `Execution has failed die to:\n${error}`
       );
 
@@ -417,7 +269,7 @@ export class AppGateway
   }
 
   @UseGuards(WsJwtGuard)
-  @SubscribeMessage("connect-room")
+  @SubscribeMessage(RoomMessage.ConnectRoom)
   async connectRoom(
     client: Socket & { user: UserDto },
     [roomId, managerSecret]: [roomId: string, managerSecret: string]
@@ -431,11 +283,11 @@ export class AppGateway
   > {
     const username = (client.user && client.user.username) || rug.generate();
 
-    if (!this.rooms[roomId]) {
-      await this.restoreRoom(roomId);
+    if (!this.roomService.rooms[roomId]) {
+      await this.roomService.restoreRoom(roomId);
     }
 
-    const room = this.rooms[roomId];
+    const room = this.roomService.rooms[roomId];
 
     if (!room) {
       return {
@@ -463,11 +315,11 @@ export class AppGateway
     );
 
     this.eventService.emit(
-      "room-send-client-except",
+      EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
       {},
-      "room-add-client",
+      RoomMessage.RoomAddClient,
       {
         id: roomClient.id,
         username: roomClient.username,
@@ -483,7 +335,7 @@ export class AppGateway
   }
 
   @UseGuards(WsJwtGuard)
-  @SubscribeMessage("room-questionnaire")
+  @SubscribeMessage(RoomMessage.RoomQuestionnaire)
   async roomQuestionnaire(
     client: Socket & { user: UserDto },
     [roomId, diffs]: [
@@ -491,7 +343,7 @@ export class AppGateway
       diffs: any // TODO: add diff dto
     ]
   ): Promise<void | ErrorDto> {
-    const room = this.rooms[roomId];
+    const room = this.roomService.rooms[roomId];
 
     if (!room) {
       return {
@@ -508,35 +360,27 @@ export class AppGateway
     }
 
     this.eventService.emit(
-      "room-send-client-except",
+      EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
       {
         isManagersOnly: true,
       },
-      "room-questionnaire",
+      RoomMessage.RoomQuestionnaire,
       diffs
     );
 
-    this.applyQuestionnaireDiff(room, diffs);
+    this.roomService.applyQuestionnaireDiff(room, diffs);
 
     room.storeDebounceFn();
   }
 
-  applyQuestionnaireDiff(room: Room, { type, value }) {
-    if (type === "replace") {
-      room.questionnaire = value;
-    } else if (type === "diff") {
-      room.questionnaire = applyDiff(room.questionnaire, value);
-    }
-  }
-
-  @SubscribeMessage("editor")
+  @SubscribeMessage(RoomMessage.Editor)
   async handleEditor(
     client: Socket,
     [roomId, ...args]: any[]
   ): Promise<void | ErrorDto> {
-    const room = this.rooms[roomId];
+    const room = this.roomService.rooms[roomId];
 
     if (!room) {
       return {
@@ -553,21 +397,21 @@ export class AppGateway
     }
 
     this.eventService.emit(
-      "room-send-client-except",
+      EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
       {},
-      "editor",
+      RoomMessage.Editor,
       ...args
     );
   }
 
-  @SubscribeMessage("room-change-language")
+  @SubscribeMessage(RoomMessage.RoomChangeLanguage)
   async handleLanguage(
     client: Socket,
     [roomId, language]: [roomId: string, language: Language]
   ): Promise<void | ErrorDto> {
-    const room = this.rooms[roomId];
+    const room = this.roomService.rooms[roomId];
 
     if (!room) {
       return {
@@ -587,23 +431,23 @@ export class AppGateway
     room.storeDebounceFn();
 
     this.eventService.emit(
-      "room-send-client-except",
+      EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
       {},
-      "room-change-language",
+      RoomMessage.RoomChangeLanguage,
       language
     );
 
-    this.eventService.emit("room-change-language", room.id, language);
+    this.eventService.emit(EventMessage.RoomChangeLanguage, room.id, language);
   }
 
-  @SubscribeMessage("editor-selection")
+  @SubscribeMessage(RoomMessage.EditorSelection)
   async handleEditorSalection(
     client: Socket,
     [roomId, ...args]: any[]
   ): Promise<void | ErrorDto> {
-    const room = this.rooms[roomId];
+    const room = this.roomService.rooms[roomId];
 
     if (!room) {
       return {
@@ -620,22 +464,22 @@ export class AppGateway
     }
 
     this.eventService.emit(
-      "room-send-client-except",
+      EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
       {},
-      "editor-selection",
+      RoomMessage.EditorSelection,
       client.id,
       ...args
     );
   }
 
-  @SubscribeMessage("editor-state")
+  @SubscribeMessage(RoomMessage.EditorState)
   async handleEditorState(
     client: Socket,
     [roomId, text]: any[]
   ): Promise<void | ErrorDto> {
-    const room = this.rooms[roomId];
+    const room = this.roomService.rooms[roomId];
 
     if (!room) {
       return {
@@ -654,27 +498,27 @@ export class AppGateway
     room.text = text;
     room.storeDebounceFn();
 
-    this.eventService.emit("room-change-text", room.id, text);
+    this.eventService.emit(EventMessage.RoomChangeText, room.id, text);
   }
 
   afterInit(server: Server) {
-    this.logger.log("Init");
+    this.logger.log("Room Socket Gateway has been inited!");
   }
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
 
-    for (const key of Object.keys(this.rooms)) {
-      const room = this.rooms[key];
+    for (const key of Object.keys(this.roomService.rooms)) {
+      const room = this.roomService.rooms[key];
       if (room.clients[client.id]) {
         const roomClient = room.clients[client.id];
         delete room.clients[client.id];
         this.eventService.emit(
-          "room-send-client-except",
+          EventMessage.RoomSendClientExcept,
           room.id,
           roomClient.id,
           {},
-          "room-remove-client",
+          RoomMessage.RoomRemoveClient,
           {
             id: roomClient.id,
             username: roomClient.username,

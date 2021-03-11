@@ -8,6 +8,7 @@ import { ResultQuestionnaireDto } from "~/dto/result.questionnaire.dto";
 import { RoomService } from "./RoomService";
 import { toJS } from "mobx";
 import { applyDiff, getDiff } from "~/utils/diff.util";
+import { RoomMessage } from "~/dto/room-message.dto";
 
 export const QuestionnaireService = createService(
   () => {
@@ -28,7 +29,7 @@ export const QuestionnaireService = createService(
       },
       syncQuestionnaire: null as () => void,
       async save() {
-        await service.roomService.emit("room-questionnaire", {
+        await service.roomService.emit(RoomMessage.RoomQuestionnaire, {
           type: "replace",
           value: service.questionnaire,
         });
@@ -56,7 +57,7 @@ export const QuestionnaireService = createService(
         service.isLoadingQuestionaire = false;
       },
       async _onChange(diff) {
-        await service.roomService.emit("room-questionnaire", {
+        await service.roomService.emit(RoomMessage.RoomQuestionnaire, {
           type: "diff",
           value: diff,
         });
@@ -69,7 +70,7 @@ export const QuestionnaireService = createService(
     service.roomService = React.useContext(RoomService);
     service.syncQuestionnaire = debounce(service._syncQuestionnaire, 100);
     service.socketService.useOn(
-      "room-questionnaire",
+      RoomMessage.RoomQuestionnaire,
       service.onQuestionnaireUpdate
     );
     // useOnChangeDiff(service, "questionnaire", service._onChange, 100);

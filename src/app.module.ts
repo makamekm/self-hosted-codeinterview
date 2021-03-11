@@ -5,38 +5,35 @@ import {
   CacheModule,
 } from "@nestjs/common";
 import { ServeStaticModule } from "@nestjs/serve-static";
-import { PUBLIC_FOLDER } from "@env/config";
+import { PUBLIC_FOLDER, REDIS_CONFIG } from "@env/config";
 import { NextMiddleware, NextModule } from "@nestpress/next";
 import * as redisStore from "cache-manager-redis-store";
 import { NextController } from "./controllers/next.controller";
 import { FrontendMiddleware } from "./middlewares/frontend.middleware";
 import { ScheduleModule } from "@nestjs/schedule";
 import { RedisModule } from "nestjs-redis";
-import { AppGateway } from "./providers/app-gateway.service";
+import { RoomSocketGateway } from "./gateways/room-socket.gateway";
 import { CodeRunnerService } from "./providers/code-runner.provider";
 import { GoogleStrategy } from "./strategies/google.strategy";
 import { GoogleController } from "./controllers/google.controller";
-import { EventServiceModule } from "./providers/event.service";
+import { EventServiceModule } from "./providers/event.provider";
 import { databaseProviders } from "./providers/database.providers";
-import { dataProviders } from "./providers/data.providers";
-import { QuestionnaireService } from "./providers/questionnaire.service";
-import { UserService } from "./providers/user.service";
+import { dataProviders } from "./config/data.providers";
+import { QuestionnaireProvider } from "./providers/questionnaire.provider";
+import { UserProvider } from "./providers/user.provider";
 import { QuestionnaireController } from "./controllers/questionnaire.controller";
 import { UserController } from "./controllers/user.controller";
+import { RoomProvider } from "./providers/room.provider";
 
 @Module({
   imports: [
     // CacheModule.register(),
     EventServiceModule,
-    RedisModule.register({
-      host: "localhost",
-      port: 6379,
-    }),
+    RedisModule.register(REDIS_CONFIG),
     CacheModule.register({
       ttl: 5,
       store: redisStore,
-      host: "localhost",
-      port: 6379,
+      ...REDIS_CONFIG,
     }),
     NextModule,
     ServeStaticModule.forRoot({
@@ -56,9 +53,10 @@ import { UserController } from "./controllers/user.controller";
   providers: [
     ...databaseProviders,
     ...dataProviders,
-    UserService,
-    QuestionnaireService,
-    AppGateway,
+    UserProvider,
+    QuestionnaireProvider,
+    RoomProvider,
+    RoomSocketGateway,
     CodeRunnerService,
     GoogleStrategy,
   ],

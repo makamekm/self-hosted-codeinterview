@@ -7,6 +7,7 @@ import { EditorService } from "./EditorService";
 import { RoomClientDto, RoomDto } from "~/dto/room.dto";
 import { QuestionnaireService } from "./QuestionnaireService";
 import { toJS } from "mobx";
+import { RoomMessage } from "~/dto/room-message.dto";
 
 export const RoomService = createService(
   () => {
@@ -41,7 +42,7 @@ export const RoomService = createService(
         if (!global.window) return;
 
         const data = await service.socketService.emit(
-          "connect-room",
+          RoomMessage.ConnectRoom,
           service.id,
           service.managerSecret
         );
@@ -94,11 +95,11 @@ export const RoomService = createService(
       },
       changeLanguage: (language) => {
         service.room.language = language;
-        service.emit("room-change-language", language);
+        service.emit(RoomMessage.RoomChangeLanguage, language);
       },
       // async changeClient(username: string) {
       //   const result = await service.socketService.emit(
-      //     "change-client",
+      //     RoomMessage.ChangeClient,
       //     service.id,
       //     {
       //       username,
@@ -111,7 +112,10 @@ export const RoomService = createService(
       //   }
       // },
       execute: async () => {
-        return await service.socketService.emit("execute-room", service.id);
+        return await service.socketService.emit(
+          RoomMessage.ExecuteRoom,
+          service.id
+        );
       },
     }));
     return service;
@@ -122,11 +126,17 @@ export const RoomService = createService(
     service.questionnaireService = React.useContext(QuestionnaireService);
     service.socketService.useOn("connect", service.onConnect);
     service.socketService.useOn("disconnect", service.onDisconnect);
-    service.socketService.useOn("room-add-client", service.onAddClient);
-    service.socketService.useOn("room-remove-client", service.onRemoveClient);
-    service.socketService.useOn("room-change-client", service.onChangeClient);
+    service.socketService.useOn(RoomMessage.RoomAddClient, service.onAddClient);
     service.socketService.useOn(
-      "room-change-language",
+      RoomMessage.RoomRemoveClient,
+      service.onRemoveClient
+    );
+    service.socketService.useOn(
+      RoomMessage.RoomChangeClient,
+      service.onChangeClient
+    );
+    service.socketService.useOn(
+      RoomMessage.RoomChangeLanguage,
       service.onChangeLanguage
     );
   }

@@ -4,13 +4,13 @@ import { Response } from "express";
 import moment from "moment";
 import * as jwt from "jsonwebtoken";
 import cookie from "cookie";
-import { UserService } from "~/providers/user.service";
+import { UserProvider } from "~/providers/user.provider";
 import { ApiTags } from "@nestjs/swagger";
 
 @ApiTags("Google Auth")
 @Controller("api/google")
 export class GoogleController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserProvider) {}
 
   @Get()
   @UseGuards(AuthGuard("google"))

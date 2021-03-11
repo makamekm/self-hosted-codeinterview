@@ -13,6 +13,7 @@ import {
 } from "../components/EditorSelection";
 import { TerminalService } from "./TerminalService";
 import { Language } from "~/dto/language.dto";
+import { RoomMessage } from "~/dto/room-message.dto";
 
 export const EditorService = createService(
   () => {
@@ -34,7 +35,7 @@ export const EditorService = createService(
         }
       },
       onSelectionChange: (selections) => {
-        service.roomService.emit("editor-selection", selections);
+        service.roomService.emit(RoomMessage.EditorSelection, selections);
 
         // const doc = service.editor.getSession().getDocument();
         // const range = service.editor.getSelectionRange();
@@ -45,7 +46,7 @@ export const EditorService = createService(
         //   anchorPos.row !== range.start.row ||
         //   anchorPos.column !== range.start.column;
 
-        // service.roomService.emit("editor-selection", {
+        // service.roomService.emit(RoomMessage.EditorSelection, {
         //   stindex,
         //   edindex,
         //   prefixed,
@@ -54,11 +55,11 @@ export const EditorService = createService(
       },
       async onApplyCode(value: string, language: Language) {
         service.value = value;
-        await service.roomService.emit("editor", {
+        await service.roomService.emit(RoomMessage.Editor, {
           type: "apply",
           value,
         });
-        await service.roomService.emit("editor-state", value);
+        await service.roomService.emit(RoomMessage.EditorState, value);
         console.log(language);
 
         service.roomService.changeLanguage(language);
@@ -71,8 +72,8 @@ export const EditorService = createService(
         if (service.suppressEvents) {
           return;
         }
-        await service.roomService.emit("editor", event);
-        await service.roomService.emit("editor-state", text);
+        await service.roomService.emit(RoomMessage.Editor, event);
+        await service.roomService.emit(RoomMessage.EditorState, text);
       },
       onEditorData: (event) => {
         if (event.type === "apply") {
@@ -133,12 +134,15 @@ export const EditorService = createService(
     service.roomService = React.useContext(RoomService);
     service.terminalService = React.useContext(TerminalService);
     React.useEffect(() => service.onLoad(), [service, service.onLoad]);
-    service.socketService.useOn("editor", service.onEditorData);
+    service.socketService.useOn(RoomMessage.Editor, service.onEditorData);
     service.socketService.useOn(
-      "editor-selection",
+      RoomMessage.EditorSelection,
       service.onEditorSelectionData
     );
-    service.socketService.useOn("room-add-client", service.onAddClient);
-    service.socketService.useOn("room-remove-client", service.onRemoveClient);
+    service.socketService.useOn(RoomMessage.RoomAddClient, service.onAddClient);
+    service.socketService.useOn(
+      RoomMessage.RoomRemoveClient,
+      service.onRemoveClient
+    );
   }
 );
