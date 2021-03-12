@@ -7,6 +7,9 @@ import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-java";
 import "ace-builds/src-noconflict/mode-typescript";
 import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/mode-html";
+import "ace-builds/src-noconflict/mode-css";
+import "ace-builds/src-noconflict/mode-scss";
 import "ace-builds/src-noconflict/theme-dracula";
 import useKeyboardShortcut from "use-keyboard-shortcut";
 import Tooltip from "@reach/tooltip";
@@ -14,7 +17,11 @@ import "@reach/tooltip/styles.css";
 import { Listbox, ListboxOption } from "@reach/listbox";
 import "@reach/listbox/styles.css";
 
-import { LanguageName, LanguageType } from "~/dto/language.dto";
+import {
+  LanguageName,
+  LanguageRunnerData,
+  LanguageType,
+} from "~/dto/language.dto";
 import { RoomService } from "~/services/RoomService";
 
 const Editor: React.FC = observer(() => {
@@ -59,10 +66,8 @@ const Editor: React.FC = observer(() => {
         ref={codemirrorRef}
         mode={LanguageType[roomService.room.language]}
         theme="dracula"
-        // maxLines={Infinity}
         height={editorHeight + "px"}
         className="min-w-full max-w-full min-h-full max-h-full"
-        // value={service.value}
         value={service.value}
         onChange={(value, event) => {
           service.value = value;
@@ -71,31 +76,24 @@ const Editor: React.FC = observer(() => {
         onSelectionChange={(selections) => {
           service.onSelectionChange(selections);
         }}
-        // defaultLanguage="javascript"
-        // beforeMount={handleEditorWillMount}
-        // onMount={handleEditorDidMount}
-        // editorDidMount={(editor) => {
-        //   service.editor = editor;
-        // }}
-        // onChange={(editor, data, value) => {
-        //   service.value = value;
-        // }}
       />
       <div className="absolute bottom-4 left-4 z-10 space-x-2 flex flex-row">
-        <Tooltip label="Control + S">
-          <button
-            disabled={service.isExecuting}
-            onClick={service.onExecute}
-            className={classNames(
-              {
-                "pointer-events-none opacity-40": service.isExecuting,
-              },
-              "cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50 bg-blue-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-blue-600"
-            )}
-          >
-            RUN
-          </button>
-        </Tooltip>
+        {LanguageRunnerData[roomService.room.language] && (
+          <Tooltip label="Control + S">
+            <button
+              disabled={service.isExecuting}
+              onClick={service.onExecute}
+              className={classNames(
+                {
+                  "pointer-events-none opacity-40": service.isExecuting,
+                },
+                "cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50 bg-blue-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-blue-600"
+              )}
+            >
+              RUN
+            </button>
+          </Tooltip>
+        )}
         <Listbox
           className="w-40"
           value={roomService.room.language}
