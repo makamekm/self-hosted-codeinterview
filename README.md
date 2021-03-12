@@ -54,14 +54,15 @@ or with majestic
 
 ## Redis
 
+s
 `docker run --name redis -d -p 6379:6379 --restart unless-stopped redis`
 
 ## Mongo
 
-`docker run --name mongodb -d -p 27017:27017 --restart unless-stopped -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password mongo`
+`docker run --name mongo -d -p 27017:27017 --restart unless-stopped -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password mongo`
 
 ```
-docker exec -it mongodb /bin/bash
+docker exec -it mongo /bin/bash
 mongo -u admin -p password --authenticationDatabase admin
 use nest
 db.createUser({
@@ -71,4 +72,10 @@ db.createUser({
 })
 exit
 exit
+```
+
+## Production
+
+```
+
 ```

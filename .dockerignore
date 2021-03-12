@@ -1,0 +1,8 @@
+/node_modules
+/dist
+/database.sqlite
+/.next
+/user_data
+/temp_data
+/cookies.json
+.env

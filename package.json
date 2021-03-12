@@ -1,12 +1,12 @@
 {
-  "name": "nest-react-template",
+  "name": "coding-interview",
   "version": "0.0.1",
-  "description": "This is a Nest + Next JS template",
+  "description": "This is Coding Interview AinO project",
   "author": "makamekm",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "clean": "rimraf dist demo-nest-api",
+    "clean": "rimraf dist",
     "build": "run-p build:ui build:api",
     "build:api": "nest build",
     "build:ui": "next build",
