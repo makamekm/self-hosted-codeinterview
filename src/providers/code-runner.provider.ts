@@ -108,7 +108,7 @@ export class CodeRunnerService {
     const child = spawn(
       "sudo",
       [
-        "sh",
+        "bash",
         path.resolve("./DockerRunWithTimeout.sh"),
         `${this.timeout_value}`,
         `${pwd}`,
@@ -116,7 +116,7 @@ export class CodeRunnerService {
         `"${languageData[1].join(" ")}"`, // compilator
       ],
       {
-        shell: "/bin/sh",
+        shell: "/bin/bash",
       }
     );
     child.stdout.setEncoding("utf8");
