@@ -5,7 +5,10 @@ export const CORS = true;
 export const WEB_SERVER_PORT = process.env.PORT || 8080;
 export const WEB_SERVER_HOST = process.env.HOST || "0.0.0.0";
 export const PUBLIC_FOLDER = path.resolve("./public");
-export const URI = process.env.SELF_URL || "https://rowanberry.xyz";
+export const URI =
+  process.env.NEXT_PUBLIC_SELF_URL ||
+  process.env.SELF_URL ||
+  "https://rowanberry.xyz";
 export const SOCKET_SERVER = URI;
 export const GOOGLE_AUTH_REDIRRECT = `${URI}/api/google/redirect`;
 export const MONGO_CONNECTION_URL = process.env.MONGO_CONNECTION_URL;
