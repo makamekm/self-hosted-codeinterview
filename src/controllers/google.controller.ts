@@ -6,6 +6,7 @@ import * as jwt from "jsonwebtoken";
 import cookie from "cookie";
 import { UserProvider } from "~/providers/user.provider";
 import { ApiTags } from "@nestjs/swagger";
+import { JWT_SECRET } from "@env/config";
 
 @ApiTags("Google Auth")
 @Controller("api/google")
@@ -51,7 +52,7 @@ export class GoogleController {
       expires: moment(moment.now()).subtract(1, "month").toDate(),
       path: "/",
     });
-    response.cookie("session", jwt.sign(user, process.env.JWT_SECRET), {
+    response.cookie("session", jwt.sign(user, JWT_SECRET), {
       expires: moment(moment.now()).add(1, "month").toDate(),
       path: "/",
     });

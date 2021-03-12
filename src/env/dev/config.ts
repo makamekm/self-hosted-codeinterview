@@ -9,10 +9,12 @@ export const SOCKET_SERVER = "http://localhost:5000";
 export const URI = "https://makame.rowanberry.xyz";
 export const GOOGLE_AUTH_REDIRRECT =
   "https://makame.rowanberry.xyz/api/google/redirect";
-export const MONGO_CONNECTION_URL =
-  "mongodb://nest:password@localhost:27017/nest";
+export const MONGO_CONNECTION_URL = process.env.MONGO_CONNECTION_URL;
+export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+export const GOOGLE_SECRET = process.env.GOOGLE_SECRET;
+export const JWT_SECRET = process.env.JWT_SECRET;
 
 export const REDIS_CONFIG: RedisModuleOptions = {
-  host: "localhost",
-  port: 6379,
+  host: process.env.REDIS_HOST || "localhost",
+  port: process.env.REDIS_PORT ? Number(process.env.REDIS_PORT) : 6379,
 };

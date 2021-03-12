@@ -1,3 +1,4 @@
+import { JWT_SECRET } from "@env/config";
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import * as jwt from "jsonwebtoken";
 import { UserDto } from "~/dto/user.dto";
@@ -12,10 +13,7 @@ export class WsJwtGuard implements CanActivate {
     const authToken = client.handshake.headers.authorization;
     if (authToken) {
       try {
-        const jwtPayload = jwt.verify(
-          authToken,
-          process.env.JWT_SECRET
-        ) as UserDto;
+        const jwtPayload = jwt.verify(authToken, JWT_SECRET) as UserDto;
         // const user: GoogleUser = await this.userService.validateUser(jwtPayload);
         // context.switchToWs().getData().user = user;
         client.user = jwtPayload;
