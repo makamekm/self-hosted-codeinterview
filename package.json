@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf dist .next",
     "build": "run-p build:ui build:api",
     "build:api": "nest build",
     "build:ui": "next build",
