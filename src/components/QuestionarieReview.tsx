@@ -111,6 +111,7 @@ export const QuestionarieReview = observer(() => {
                             )}
                             {!!question.code && (
                               <AceEditor
+                                setOptions={{ useWorker: false }}
                                 readOnly
                                 mode={
                                   LanguageType[

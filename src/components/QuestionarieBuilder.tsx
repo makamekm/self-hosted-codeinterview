@@ -112,6 +112,7 @@ const Question = observer(
             ))}
           </Listbox>
           <AceEditor
+            setOptions={{ useWorker: false }}
             readOnly={service.readOnly}
             mode={
               LanguageType[question.language || service.questionnaire.language]
