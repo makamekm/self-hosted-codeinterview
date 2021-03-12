@@ -26,7 +26,7 @@ export const LanguageRunnerData: {
   // ],
   [Language.JavaScript]: ["node", ["node", "file.js"], "file.js"],
   [Language.Java]: [
-    "openjdk:8",
+    "openjdk",
     ["javac", "Main.java", "&&", "java", "Main"],
     "Main.java",
   ],

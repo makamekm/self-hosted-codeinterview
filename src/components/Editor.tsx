@@ -35,15 +35,16 @@ const Editor: React.FC = observer(() => {
   });
 
   React.useEffect(() => {
-    service.editor = codemirrorRef.current?.editor;
-  }, [service, codemirrorRef]);
-  React.useEffect(() => {
     updateEditorSize(height);
   }, [updateEditorSize, height]);
 
   useKeyboardShortcut(["Control", "S"], service.onExecute, {
     overrideSystem: true,
   });
+
+  if (service.editor !== codemirrorRef.current?.editor) {
+    service.editor = codemirrorRef.current?.editor;
+  }
 
   if (!roomService.room) {
     return <></>;

@@ -1,5 +1,6 @@
 import { RedisModuleOptions } from "nestjs-redis";
 import * as path from "path";
+import os from "os";
 
 export const CORS = true;
 export const WEB_SERVER_PORT = process.env.PORT || 8080;
@@ -17,3 +18,5 @@ export const REDIS_CONFIG: RedisModuleOptions = {
   host: process.env.REDIS_HOST || "localhost",
   port: process.env.REDIS_PORT ? Number(process.env.REDIS_PORT) : 6379,
 };
+
+export const ARCH = os.arch();
