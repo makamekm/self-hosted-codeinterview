@@ -85,6 +85,7 @@ export class QuestionnaireController {
     questionnaireModel.name = questionnaire.name;
     questionnaireModel.language = questionnaire.language;
     questionnaireModel.sections = questionnaire.sections;
+    questionnaireModel.isPublic = questionnaire.isPublic;
 
     return await this.questionnaireService.update(
       questionnaireModel,
