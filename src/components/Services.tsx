@@ -5,6 +5,7 @@ import { CreateRoomService } from "~/services/CreateRoomService";
 import { TerminalService } from "~/services/TerminalService";
 import { UserService } from "~/services/UserService";
 import { QuestionnaireService } from "~/services/QuestionnaireService";
+import { LoadingService } from "~/services/LoadingService";
 import { QuestionnaireSearchService } from "~/services/QuestionnaireSearchService";
 import { QuestionnaireBuilderService } from "~/services/QuestionnaireBuilderService";
 
@@ -18,4 +19,5 @@ export const Services = [
   QuestionnaireService,
   QuestionnaireSearchService,
   QuestionnaireBuilderService,
+  LoadingService,
 ];

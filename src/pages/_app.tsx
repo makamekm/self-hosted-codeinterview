@@ -7,6 +7,7 @@ import "~/components/index.css";
 import "~/components/bg.scss";
 import { Services } from "~/components/Services";
 import { Header } from "~/components/Header";
+import { LoadingScreen } from "~/components/LoadingScreen";
 
 if (typeof window === "undefined") {
   enableStaticRendering(true);
@@ -26,6 +27,7 @@ const App = observer(({ Component, pageProps }) => {
         >
           <Header />
           <Component {...pageProps} />
+          <LoadingScreen />
         </ToastProvider>
       </ServiceProviderHook>
     </ServiceProvider>

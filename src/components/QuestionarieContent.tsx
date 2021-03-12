@@ -37,10 +37,8 @@ export const QuestionarieContent = observer(() => {
     [questionnaireService]
   );
   const onChangeComment = useCallback(
-    (question: ResultQuestionnaireSectionQuestionDto) => (
-      event: ChangeEvent<HTMLInputElement>
-    ) => {
-      question.comment = event.currentTarget.value;
+    (question: ResultQuestionnaireSectionQuestionDto) => (value: string) => {
+      question.comment = value;
       questionnaireService.syncQuestionnaire();
     },
     [questionnaireService]
@@ -133,7 +131,7 @@ export const QuestionarieContent = observer(() => {
                               theme={"bubble"}
                               placeholder="Comments..."
                               value={question.comment || ""}
-                              onChange={(value) => (question.comment = value)}
+                              onChange={onChangeComment(question)}
                             />
 
                             {!!question.code && (
