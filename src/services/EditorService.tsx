@@ -1,5 +1,5 @@
 import React from "react";
-import { createService } from "react-service-provider";
+import { createService, ServiceContextHook } from "react-service-provider";
 import { useLocalObservable } from "mobx-react";
 import AceEditor from "react-ace";
 import { SocketService } from "./SocketService";
@@ -15,7 +15,7 @@ import { TerminalService } from "./TerminalService";
 import { Language } from "~/dto/language.dto";
 import { RoomMessage } from "~/dto/room-message.dto";
 
-export const EditorService = createService(
+export const EditorService: ServiceContextHook<any> = createService(
   () => {
     const service = useLocalObservable(() => ({
       socketService: null as ReturnType<typeof SocketService.useState>,
@@ -24,34 +24,8 @@ export const EditorService = createService(
       editor: null as AceEditor["editor"],
       value: "",
       suppressEvents: false,
-      onLoad: () => {
-        if (global.window) {
-          setTimeout(() => service.onInit(), 100);
-        }
-      },
-      onInit: () => {
-        if (service.editor) {
-          // TODO: remove
-        }
-      },
-      onSelectionChange: (selections) => {
+      onSelectionChange(selections) {
         service.roomService.emit(RoomMessage.EditorSelection, selections);
-
-        // const doc = service.editor.getSession().getDocument();
-        // const range = service.editor.getSelectionRange();
-        // const stindex = doc.positionToIndex(range.start);
-        // const edindex = doc.positionToIndex(range.end);
-        // const anchorPos = service.editor.selection.getAnchor();
-        // const prefixed =
-        //   anchorPos.row !== range.start.row ||
-        //   anchorPos.column !== range.start.column;
-
-        // service.roomService.emit(RoomMessage.EditorSelection, {
-        //   stindex,
-        //   edindex,
-        //   prefixed,
-        // });
-        // console.log({ stindex, edindex, prefixed });
       },
       async onApplyCode(value: string, language: Language) {
         service.value = value;
@@ -60,22 +34,20 @@ export const EditorService = createService(
           value,
         });
         await service.roomService.emit(RoomMessage.EditorState, value);
-        console.log(language);
-
         service.roomService.changeLanguage(language);
       },
-      onEditorSelectionData: (clientId, selections: AceAnchor) => {
+      onEditorSelectionData(clientId, selections: AceAnchor) {
         if (!service.editor) return;
         setAnchorSelectionClient(service.editor, clientId, selections);
       },
-      onChange: async (text, event) => {
+      async onChange(text, event) {
         if (service.suppressEvents) {
           return;
         }
         await service.roomService.emit(RoomMessage.Editor, event);
         await service.roomService.emit(RoomMessage.EditorState, text);
       },
-      onEditorData: (event) => {
+      onEditorData(event) {
         if (event.type === "apply") {
           service.value = event.value;
         } else {
@@ -86,10 +58,10 @@ export const EditorService = createService(
           service.suppressEvents = false;
         }
       },
-      clearAnchors: () => {
+      clearAnchors() {
         clearAllSelectionClient(service.editor);
       },
-      makeAnchors: () => {
+      makeAnchors() {
         if (service.roomService.room) {
           clearAllSelectionClient(service.editor);
           Object.keys(service.roomService.room.clients).forEach((key) => {
@@ -97,14 +69,14 @@ export const EditorService = createService(
           });
         }
       },
-      onAddClient: (client) => {
+      onAddClient(client) {
         addSelectionClient(client.id);
       },
-      onRemoveClient: (client) => {
+      onRemoveClient(client) {
         removeIdSelectionClient(service.editor, client.id);
       },
       isExecuting: false,
-      onExecute: async () => {
+      async onExecute() {
         if (service.isExecuting) {
           return;
         }
@@ -112,14 +84,6 @@ export const EditorService = createService(
         try {
           service.terminalService.addOutput("Executing...");
           await service.roomService.execute();
-          // service.terminalService.addOutput(
-          //   `Finished running with status code: ${code}\nOutput:`
-          // );
-          // if (data) {
-          //   service.terminalService.addOutput(data);
-          // } else if (data) {
-          //   service.terminalService.addOutput(err);
-          // }
         } catch (error) {
           console.error(error);
         } finally {
@@ -133,7 +97,6 @@ export const EditorService = createService(
     service.socketService = React.useContext(SocketService);
     service.roomService = React.useContext(RoomService);
     service.terminalService = React.useContext(TerminalService);
-    React.useEffect(() => service.onLoad(), [service, service.onLoad]);
     service.socketService.useOn(RoomMessage.Editor, service.onEditorData);
     service.socketService.useOn(
       RoomMessage.EditorSelection,

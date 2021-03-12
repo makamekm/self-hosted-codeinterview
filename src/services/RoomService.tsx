@@ -1,5 +1,5 @@
 import React from "react";
-import { createService } from "react-service-provider";
+import { createService, ServiceContextHook } from "react-service-provider";
 import { useLocalObservable } from "mobx-react";
 import { makeHotPromise } from "~/utils/hot-promise.util";
 import { SocketService } from "./SocketService";
@@ -9,7 +9,7 @@ import { QuestionnaireService } from "./QuestionnaireService";
 import { toJS } from "mobx";
 import { RoomMessage } from "~/dto/room-message.dto";
 
-export const RoomService = createService(
+export const RoomService: ServiceContextHook<any> = createService(
   () => {
     const service = useLocalObservable(() => ({
       socketService: null as ReturnType<typeof SocketService.useState>,
