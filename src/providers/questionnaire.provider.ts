@@ -89,6 +89,7 @@ export class QuestionnaireProvider {
         name: 1,
         user: 1,
         language: 1,
+        isPublic: 1,
       })
       .sort({ date: -1 })
       .limit(limit)
