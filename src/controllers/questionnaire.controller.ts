@@ -65,7 +65,14 @@ export class QuestionnaireController {
     limit = limit || 10;
     limit = Math.min(limit, 10);
 
-    return this.questionnaireService.find(name, language, limit, req.user?._id);
+    return this.questionnaireService.find(
+      name,
+      language,
+      limit,
+      req.user?._id,
+      undefined,
+      !!req.user?._id ? undefined : true
+    );
   }
 
   @Post()
