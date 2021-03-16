@@ -42,5 +42,10 @@ export async function bootstrapAPI() {
       app.listen(port, WEB_SERVER_HOST, () => {
         console.log("Server is listening...", port);
       });
+
+      if ((module as any).hot) {
+        (module as any).hot.accept();
+        (module as any).hot.dispose(() => app.close());
+      }
     });
 }
