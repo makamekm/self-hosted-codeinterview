@@ -1,4 +1,4 @@
-import { observer } from "mobx-react";
+import { observer, useLocalObservable } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
 import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-java";
@@ -14,6 +14,11 @@ import { Listbox, ListboxOption } from "@reach/listbox";
 import "@reach/listbox/styles.css";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.bubble.css";
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+} from "@reach/disclosure";
 
 import { Language, LanguageName, LanguageType } from "~/dto/language.dto";
 import { reorder, move } from "~/utils/dnd.util";
@@ -32,12 +37,14 @@ const Question = observer(
     provided,
     snapshot,
     index,
+    state,
   }: {
     section: QuestionnaireSectionDto;
     question: QuestionnaireSectionQuestionDto;
     provided;
     snapshot;
     index: number;
+    state: IBuilderState;
   }) => {
     const service = useContext(QuestionnaireBuilderService);
 
@@ -138,122 +145,158 @@ const Section = observer(
     section,
     provided,
     snapshot,
+    state,
   }: {
     section: QuestionnaireSectionDto;
     provided;
     snapshot;
     index: number;
+    state: IBuilderState;
   }) => {
     const service = useContext(QuestionnaireBuilderService);
 
     return (
       <div className="w-full" ref={provided.innerRef}>
-        <div className="rounded-md shadow-xl bg-gray-700">
-          <div className="flex flex-row items-stretch space-x-2 px-2 py-2 w-full text-center font-semibold text-base hover:bg-gray-500 focus:bg-gray-500 focus:outline-none rounded-sm transition-colors duration-200">
-            <input
-              readOnly={service.readOnly}
-              value={section.name}
-              placeholder="Section Name"
-              className="flex-1 py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 transition-colors duration-200"
-              onChange={(e) => (section.name = e.currentTarget.value)}
-            />
-            {!service.readOnly && (
-              <>
-                <WarnDialog
-                  onApprove={() => {
-                    service.questionnaire.sections.splice(index, 1);
-                  }}
-                  text="Removing the question cannot be reverted."
-                >
-                  {({ open }) => (
-                    <div
-                      onClick={open}
-                      className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
-                    >
-                      Remove
-                    </div>
-                  )}
-                </WarnDialog>
-                <div
-                  onClick={() => {
-                    if (index !== 0)
-                      reorder(service.questionnaire.sections, index, index - 1);
-                  }}
-                  className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
-                >
-                  Up
-                </div>
-                <div
-                  onClick={() => {
-                    if (index + 1 !== service.questionnaire.sections.length)
-                      reorder(service.questionnaire.sections, index, index + 1);
-                  }}
-                  className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
-                >
-                  Down
-                </div>
-              </>
-            )}
-          </div>
-          <div className="border-gray-600 border-t space-y-8 px-2 py-2">
-            {(!service.readOnly || !!section.description) && (
-              <ReactQuill
+        <Disclosure open={state.sectionIsOpen[section.id] || false} onChange={() => state.sectionIsOpen[section.id] = !state.sectionIsOpen[section.id]}>
+          <div className="rounded-md shadow-xl bg-gray-700">
+            <div className="flex flex-row items-stretch space-x-2 px-2 py-2 w-full text-center font-semibold text-base hover:bg-gray-500 focus:bg-gray-500 focus:outline-none rounded-sm transition-colors duration-200">
+              <input
                 readOnly={service.readOnly}
-                theme={"bubble"}
-                placeholder="Section Description"
-                value={section.description || ""}
-                onChange={(value) => (section.description = value)}
+                value={section.name}
+                placeholder="Section Name"
+                className="flex-1 py-2 px-4 text-sm text-white bg-gray-900 rounded-md focus:outline-none focus:bg-white focus:text-gray-900 transition-colors duration-200"
+                onChange={(e) => (section.name = e.currentTarget.value)}
               />
-            )}
-
-            {section.questions.length > 0 && (
-              <div className="w-full flex flex-col space-y-4">
-                {section.questions.map((question, index) => (
-                  <Draggable
-                    isDragDisabled={service.readOnly}
-                    draggableId={question.id}
-                    index={index}
-                    key={question.id}
-                  >
-                    {(provided, snapshot) => (
-                      <Question
-                        index={index}
-                        question={question}
-                        provided={provided}
-                        snapshot={snapshot}
-                        section={section}
-                        key={question.id}
-                      />
-                    )}
-                  </Draggable>
-                ))}
-              </div>
-            )}
-
-            {provided.placeholder}
-
-            {!service.readOnly && (
-              <button
-                onClick={() =>
-                  section.questions.push({
-                    id: uuidv4(),
-                    name: "New Question",
-                  })
-                }
-                className="w-full bg-gray-600 hover:bg-gray-500 focus:outline-none focus:bg-gray-500 text-white text-sm px-4 py-2 rounded-sm transition-colors duration-200"
+              {!service.readOnly && <WarnDialog
+                onApprove={() => {
+                  service.questionnaire.sections.splice(index, 1);
+                }}
+                text="Removing the question cannot be reverted."
               >
-                + Add Question
-              </button>
-            )}
+                {({ open }) => (
+                  <div
+                    onClick={open}
+                    className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
+                  >
+                    Remove
+                  </div>
+                )}
+              </WarnDialog>}
+              {!service.readOnly && <div
+                onClick={() => {
+                  if (index !== 0)
+                    reorder(service.questionnaire.sections, index, index - 1);
+                }}
+                className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
+              >
+                Up
+              </div>}
+              {!service.readOnly && <div
+                onClick={() => {
+                  if (index + 1 !== service.questionnaire.sections.length)
+                    reorder(service.questionnaire.sections, index, index + 1);
+                }}
+                className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
+              >
+                Down
+              </div>}
+              <DisclosureButton className="flex flex-row items-center px-3 py-1 font-mono font-thin text-sm cursor-pointer rounded-lg hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200 outline-none focus:outline-none">
+                {state.sectionIsOpen[section.id] ? "- Hide" : "+ Show"}
+              </DisclosureButton>
+            </div>
+            <DisclosurePanel className="border-gray-600 border-t space-y-8 px-2 py-2">
+              {(!service.readOnly || !!section.description) && (
+                <ReactQuill
+                  readOnly={service.readOnly}
+                  theme={"bubble"}
+                  placeholder="Section Description"
+                  value={section.description || ""}
+                  onChange={(value) => (section.description = value)}
+                />
+              )}
+
+              {section.questions.length > 0 && (
+                <div className="w-full flex flex-col space-y-4">
+                  {section.questions.map((question, index) => (
+                    <Draggable
+                      isDragDisabled={service.readOnly}
+                      draggableId={question.id}
+                      index={index}
+                      key={question.id}
+                    >
+                      {(provided, snapshot) => (
+                        <Question
+                          index={index}
+                          question={question}
+                          provided={provided}
+                          snapshot={snapshot}
+                          section={section}
+                          key={question.id}
+                          state={state}
+                        />
+                      )}
+                    </Draggable>
+                  ))}
+                </div>
+              )}
+
+              {provided.placeholder}
+
+              {!service.readOnly && (
+                <button
+                  onClick={() =>
+                    section.questions.push({
+                      id: uuidv4(),
+                      name: "New Question",
+                    })
+                  }
+                  className="w-full bg-gray-600 hover:bg-gray-500 focus:outline-none focus:bg-gray-500 text-white text-sm px-4 py-2 rounded-sm transition-colors duration-200"
+                >
+                  + Add Question
+                </button>
+              )}
+            </DisclosurePanel>
           </div>
-        </div>
+        </Disclosure>
       </div>
     );
   }
 );
 
+interface IBuilderState {
+  sectionIsOpen: { [id: string]: boolean },
+  isShowAll: boolean;
+}
+
 export const QuestionarieBuilder = observer(() => {
   const service = useContext(QuestionnaireBuilderService);
+  const state: IBuilderState = useLocalObservable(() => ({
+    sectionIsOpen: {} as { [id: string]: boolean },
+    get isShowAll() {
+      if (!service.questionnaire) {
+        return false;
+      }
+
+      for (let section of service.questionnaire.sections) {
+        if (state.sectionIsOpen[section.id]) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+  }));
+
+  const onToggleShowSections = () => {
+    const isShowAll = state.isShowAll;
+    if (isShowAll) {
+      state.sectionIsOpen = {};
+    } else {
+      service.questionnaire.sections.forEach((section) => {
+        state.sectionIsOpen[section.id] = true;
+      });
+    }
+  };
 
   const onDragEnd = (result) => {
     if (service.readOnly) {
@@ -325,6 +368,15 @@ export const QuestionarieBuilder = observer(() => {
         </div>
       )}
 
+      <div className="flex flex-row w-full justify-end items-center">
+        <button
+          onClick={onToggleShowSections}
+          className="cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50 bg-gray-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-gray-600"
+        >
+          {state.isShowAll ? "HIDE" : "SHOW"} All
+        </button>
+      </div>
+
       <DragDropContext onDragEnd={onDragEnd}>
         {service.questionnaire.sections.map((section, index) => (
           <Droppable droppableId={section.id} key={section.id}>
@@ -335,6 +387,7 @@ export const QuestionarieBuilder = observer(() => {
                 section={section}
                 provided={provided}
                 snapshot={snapshot}
+                state={state}
               />
             )}
           </Droppable>
