@@ -5,15 +5,18 @@ import io from "socket.io-client";
 import { SOCKET_SERVER } from "@env/config";
 import { makeHotPromise } from "~/utils/hot-promise.util";
 import Cookies from "js-cookie";
+import { LoadingService } from "./LoadingService";
 
 export const SocketService = createService(
   () => {
     const service = useLocalObservable(() => ({
       socket: null as SocketIOClient.Socket,
       socketManager: null as SocketIOClient.Manager,
+      loadingService: null as ReturnType<typeof LoadingService.useState>,
       isConnected: false,
       onLoad: () => {
         if (global.window) {
+          service.loadingService.blockers++;
           service.connect();
         }
       },
@@ -37,11 +40,13 @@ export const SocketService = createService(
           },
         });
         service.socket.on("connect", () => {
+          service.loadingService.blockers--;
           service.isConnected = true;
           // await service.initPromise;
           service.initHotPromise.resolve();
         });
         service.socket.on("disconnect", () => {
+          service.loadingService.blockers++;
           service.isConnected = false;
           service.initHotPromise.reinit();
         });
@@ -80,6 +85,7 @@ export const SocketService = createService(
     return service;
   },
   (service) => {
+    service.loadingService = React.useContext(LoadingService);
     React.useEffect(() => service.onLoad(), [service, service.onLoad]);
   }
 );
