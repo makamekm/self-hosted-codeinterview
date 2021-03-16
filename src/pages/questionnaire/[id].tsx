@@ -43,8 +43,8 @@ const Home: React.FC = observer(() => {
   return (
     <div className="flex flex-col justify-center items-center min-h-screen min-w-full">
       <TopPanel />
-      <div className="flex-1 flex flex-col justify-start items-center w-1/2 mb-4 space-y-4">
-        <div className="w-full flex flex-row items-stretch justify-end space-x-2">
+      <div className="flex-1 flex flex-col justify-start items-center mb-4 space-y-4 container-content">
+        {!service.isLoading && <div className="w-full flex flex-row items-stretch justify-end space-x-2">
           {!service.readOnly && (
             <WarnDialog
               onApprove={onDelete}
@@ -76,7 +76,7 @@ const Home: React.FC = observer(() => {
               SAVE
             </button>
           )}
-        </div>
+        </div>}
         <QuestionarieBuilder />
       </div>
     </div>
