@@ -1,5 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import * as path from "path";
+import * as bodyParser from 'body-parser';
 import { AppModule } from "./app.module";
 import { CORS, WEB_SERVER_PORT, WEB_SERVER_HOST } from "@env/config";
 import { NextModule } from "@nestpress/next";
@@ -25,6 +26,8 @@ export async function bootstrapAPI() {
     logger: ["error", "warn", "log"],
   });
   const port = WEB_SERVER_PORT;
+
+  app.use(bodyParser.json({ limit: '100mb' }));
   app.useGlobalPipes(new ValidationPipe());
 
   const config = new DocumentBuilder()

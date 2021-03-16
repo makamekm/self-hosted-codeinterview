@@ -24,6 +24,7 @@ import { UserProvider } from "./providers/user.provider";
 import { QuestionnaireController } from "./controllers/questionnaire.controller";
 import { UserController } from "./controllers/user.controller";
 import { RoomProvider } from "./providers/room.provider";
+import { ClusterProvider } from "./providers/cluster.provider";
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { RoomProvider } from "./providers/room.provider";
     UserController,
   ],
   providers: [
+    ClusterProvider,
     ...databaseProviders,
     ...dataProviders,
     UserProvider,

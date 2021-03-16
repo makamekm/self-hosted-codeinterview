@@ -2,7 +2,8 @@
 require('dotenv').config();
 
 import { bootstrapAPI } from "./server";
+import { ClusterProvider } from "./providers/cluster.provider";
 
 console.log("Environment:", process.env.CURRENT_ENV);
 
-bootstrapAPI();
+ClusterProvider.clusterize(bootstrapAPI);
