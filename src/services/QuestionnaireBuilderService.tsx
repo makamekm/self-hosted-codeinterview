@@ -4,6 +4,7 @@ import { Language } from "~/dto/language.dto";
 import { QuestionnaireDto } from "~/dto/questionnaire.dto";
 import { UserService } from "./UserService";
 import { useContext } from "react";
+import { LoadingService } from "./LoadingService";
 
 const getEmpty = (): QuestionnaireDto => ({
   user: undefined,
@@ -17,12 +18,14 @@ export const QuestionnaireBuilderService = createService(
   () => {
     const service = useLocalObservable(() => ({
       userService: null as ReturnType<typeof UserService.useState>,
+      loadingService: null as ReturnType<typeof LoadingService.useState>,
       id: null as string,
       readOnly: false,
       questionnaire: getEmpty(),
       isLoading: false,
       async load() {
         service.isLoading = true;
+        service.loadingService.blockers++;
         const data = await fetch("/api/questionnaire/" + service.id).then((r) =>
           r.json()
         );
@@ -30,6 +33,7 @@ export const QuestionnaireBuilderService = createService(
         service.readOnly =
           service.questionnaire.user?._id !== service.userService.user?._id;
         service.isLoading = false;
+        service.loadingService.blockers--;
       },
       setEmpty() {
         service.questionnaire = getEmpty();
@@ -72,6 +76,7 @@ export const QuestionnaireBuilderService = createService(
   },
   (service) => {
     service.userService = useContext(UserService);
+    service.loadingService = useContext(LoadingService);
     // useOnChangeDiff(service, "questionnaire", service._onChange, 100);
   }
 );

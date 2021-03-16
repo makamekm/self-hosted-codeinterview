@@ -155,11 +155,17 @@ const Section = observer(
   }) => {
     const service = useContext(QuestionnaireBuilderService);
 
+    const props = state.isDragQuestions ? {} : { ...provided.draggableProps, style: provided.draggableProps.style };
+    const propsDnd = state.isDragQuestions ? {} : { ...provided.dragHandleProps };
+
     return (
-      <div className="w-full" ref={provided.innerRef}>
+      <div className="w-full" ref={provided.innerRef} {...props}>
         <Disclosure open={state.sectionIsOpen[section.id] || false} onChange={() => state.sectionIsOpen[section.id] = !state.sectionIsOpen[section.id]}>
           <div className="rounded-md shadow-xl bg-gray-700">
-            <div className="flex flex-row items-stretch space-x-2 px-2 py-2 w-full text-center font-semibold text-base hover:bg-gray-500 focus:bg-gray-500 focus:outline-none rounded-sm transition-colors duration-200">
+            <div
+              className="flex flex-row items-stretch space-x-2 px-2 py-2 w-full text-center font-semibold text-base hover:bg-gray-500 focus:bg-gray-500 focus:outline-none rounded-sm transition-colors duration-200"
+              {...propsDnd}
+            >
               <input
                 readOnly={service.readOnly}
                 value={section.name}
@@ -219,7 +225,7 @@ const Section = observer(
                 <div className="w-full flex flex-col space-y-4">
                   {section.questions.map((question, index) => (
                     <Draggable
-                      isDragDisabled={service.readOnly}
+                      isDragDisabled={!state.isDragQuestions || service.readOnly}
                       draggableId={question.id}
                       index={index}
                       key={question.id}
@@ -264,6 +270,7 @@ const Section = observer(
 );
 
 interface IBuilderState {
+  isDragQuestions: boolean;
   sectionIsOpen: { [id: string]: boolean },
   isShowAll: boolean;
 }
@@ -271,6 +278,7 @@ interface IBuilderState {
 export const QuestionarieBuilder = observer(() => {
   const service = useContext(QuestionnaireBuilderService);
   const state: IBuilderState = useLocalObservable(() => ({
+    isDragQuestions: false,
     sectionIsOpen: {} as { [id: string]: boolean },
     get isShowAll() {
       if (!service.questionnaire) {
@@ -310,17 +318,21 @@ export const QuestionarieBuilder = observer(() => {
       return;
     }
 
-    const sourceArr = service.questionnaire.sections.find(
-      (s) => s.id === source.droppableId
-    );
-    const destinationArr = service.questionnaire.sections.find(
-      (s) => s.id === destination.droppableId
-    );
-
-    if (source.droppableId === destination.droppableId) {
-      reorder(sourceArr.questions, source.index, destination.index);
+    if (!state.isDragQuestions) {
+      reorder(service.questionnaire.sections, source.index, destination.index);
     } else {
-      move(sourceArr.questions, destinationArr.questions, source, destination);
+      const sourceArr = service.questionnaire.sections.find(
+        (s) => s.id === source.droppableId
+      );
+      const destinationArr = service.questionnaire.sections.find(
+        (s) => s.id === destination.droppableId
+      );
+
+      if (source.droppableId === destination.droppableId) {
+        reorder(sourceArr.questions, source.index, destination.index);
+      } else {
+        move(sourceArr.questions, destinationArr.questions, source, destination);
+      }
     }
   };
 
@@ -368,7 +380,15 @@ export const QuestionarieBuilder = observer(() => {
         </div>
       )}
 
-      <div className="flex flex-row w-full justify-end items-center">
+      <div className="flex flex-row w-full justify-end items-center space-x-4">
+        {!service.readOnly && <div className="flex flex-row items-center space-x-2 text-sm">
+          <Toggle
+            checked={state.isDragQuestions}
+            onChange={(value) => (state.isDragQuestions = value)}
+          />
+          <div>Drag {state.isDragQuestions ? "Questions" : "Sections"}</div>
+        </div>}
+
         <button
           onClick={onToggleShowSections}
           className="cursor-pointer outline-none focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50 bg-gray-500 rounded-lg font-medium text-white text-xs text-center px-4 py-2 transition duration-300 ease-in-out hover:bg-gray-600"
@@ -378,7 +398,7 @@ export const QuestionarieBuilder = observer(() => {
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        {service.questionnaire.sections.map((section, index) => (
+        {state.isDragQuestions && service.questionnaire.sections.map((section, index) => (
           <Droppable droppableId={section.id} key={section.id}>
             {(provided, snapshot) => (
               <Section
@@ -392,6 +412,32 @@ export const QuestionarieBuilder = observer(() => {
             )}
           </Droppable>
         ))}
+
+        {!state.isDragQuestions && <Droppable droppableId={"-1"}>
+          {(provided, snapshot) => (
+            <div className="relative w-full space-y-4" ref={provided.innerRef}>
+              {service.questionnaire.sections.map((section, index) => (
+                <Draggable
+                  isDragDisabled={state.isDragQuestions || service.readOnly}
+                  draggableId={section.id}
+                  index={index}
+                  key={section.id}
+                >
+                  {(provided, snapshot) => (
+                    <Section
+                      key={section.id}
+                      index={index}
+                      section={section}
+                      provided={provided}
+                      snapshot={snapshot}
+                      state={state}
+                    />
+                  )}
+                </Draggable>
+              ))}
+            </div>
+          )}
+        </Droppable>}
       </DragDropContext>
 
       {!service.readOnly && (
