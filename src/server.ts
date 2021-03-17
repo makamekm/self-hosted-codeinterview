@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import * as path from "path";
 import * as bodyParser from 'body-parser';
 import { AppModule } from "./app.module";
+import { SocketRedisAdapter } from "./adapters/socket.redis.adapter";
 import { CORS, WEB_SERVER_PORT, WEB_SERVER_HOST } from "@env/config";
 import { NextModule } from "@nestpress/next";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
@@ -29,6 +30,7 @@ export async function bootstrapAPI() {
 
   app.use(bodyParser.json({ limit: '100mb' }));
   app.useGlobalPipes(new ValidationPipe());
+  app.useWebSocketAdapter(new SocketRedisAdapter(app));
 
   const config = new DocumentBuilder()
     .setTitle("Code Interview")

@@ -76,6 +76,7 @@
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.6",
     "sass": "^1.32.8",
+    "socket.io-redis": "^6.1.0",
     "styled-components": "^5.2.1",
     "swagger-ui-express": "^4.1.6",
     "ts-debounce": "^3.0.0",
