@@ -42,6 +42,7 @@
     "@reach/disclosure": "^0.13.2",
     "@reach/listbox": "^0.13.2",
     "@reach/tooltip": "^0.13.2",
+    "@socket.io/sticky": "^1.0.0",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/node-fetch": "^2.5.8",
     "ace-builds": "^1.4.12",
