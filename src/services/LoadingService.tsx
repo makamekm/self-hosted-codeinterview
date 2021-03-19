@@ -25,11 +25,11 @@ export const LoadingService = createService(
       const debounceSetLoadingLong = debounce(service.setLoading, 400);
 
       const handleStart = () => {
-        (debounceSetLoadingLong as any).cancel();
+        debounceSetLoadingLong.cancel();
         debounceSetLoadingShort(true);
       };
       const handleComplete = () => {
-        (debounceSetLoadingShort as any).cancel();
+        debounceSetLoadingShort.cancel();
         debounceSetLoadingLong(false);
       };
 

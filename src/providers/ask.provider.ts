@@ -3,13 +3,65 @@ import { Controller, Provider } from "@nestjs/common/interfaces";
 import { MetadataScanner, ModulesContainer } from "@nestjs/core";
 import { InstanceWrapper } from "@nestjs/core/injector/instance-wrapper";
 import { RedisService } from "nestjs-redis";
-import { REDIS_CONFIG } from "@env/config";
-import redis from 'redis';
-
-const EVENT_SERVICE_SUBSCRIBER = "EVENT_SERVICE_SUBSCRIBER";
+import { v4 as uuidv4 } from "uuid";
+import { makeSimpleHotPromise } from "~/utils/hot-promise.util";
 
 @Injectable()
-export class EventServiceSubscriberExplorer {
+export class AskProvider {
+  constructor(private readonly redisService: RedisService) {
+    this.redisService.getClient().on("answer", this.onResponse);
+  }
+
+  askQueue: {
+    [id: string]: {
+      promise: ReturnType<typeof makeSimpleHotPromise>;
+      timeout: NodeJS.Timeout;
+    };
+  } = {};
+  subscribers: (() => any)[];
+
+  async ask<T = any>(name: string, ...args) {
+    const id = uuidv4();
+    const promise = makeSimpleHotPromise<T>();
+    const timeout = this.askQueue[id].timeout;
+    this.askQueue[id] = {
+      promise,
+      timeout,
+    };
+    try {
+      const hasSent = await this.redisService.getClient().emit("ask_" + name, id, ...args);
+      if (!hasSent) {
+        clearTimeout(timeout);
+        promise.reject("Failed to send via Redis!");
+      }
+    } catch (error) {
+      clearTimeout(timeout);
+      promise.reject(error);
+    } finally {
+      return promise.promise;
+    }
+  }
+
+  async onResponse(id, data) {
+    if (this.askQueue[id]) {
+      clearTimeout(this.askQueue[id].timeout);
+      this.askQueue[id].promise.resolve(data);
+    }
+  }
+
+  public async emit(id: string, data) {
+    await this.redisService.getClient().emit("answer", id, data);
+  }
+
+  subscribe(topic: string, callback) {
+    this.redisService.getClient().on("ask_" + topic, callback);
+  }
+}
+
+const ASK_SERVICE_SUBSCRIBER = "ASK_SERVICE_SUBSCRIBER";
+
+@Injectable()
+export class AskServiceSubscriberExplorer {
   constructor(
     private readonly modulesContainer: ModulesContainer,
     private readonly metadataScanner: MetadataScanner
@@ -81,7 +133,7 @@ export class EventServiceSubscriberExplorer {
   ) {
     const targetCallback = instancePrototype[methodKey];
     const handler = Reflect.getMetadata(
-      EVENT_SERVICE_SUBSCRIBER,
+      ASK_SERVICE_SUBSCRIBER,
       targetCallback
     );
     if (handler == null) {
@@ -100,13 +152,13 @@ export interface ISubscribeMetadata {
   callback: Function;
 }
 
-export const EventSubscribe = (topic: string): any => {
+export const AskSubscribe = (topic: string): any => {
   return (
     target: Object,
     propertyKey: string,
     descriptor: PropertyDescriptor
   ) => {
-    SetMetadata<string, ISubscribeMetadata>(EVENT_SERVICE_SUBSCRIBER, {
+    SetMetadata<string, ISubscribeMetadata>(ASK_SERVICE_SUBSCRIBER, {
       topic,
       target,
       methodName: propertyKey,
@@ -115,34 +167,15 @@ export const EventSubscribe = (topic: string): any => {
   };
 };
 
-@Injectable()
-export class EventProvider {
-  constructor(private readonly redisService: RedisService) { }
-
-  subscribers: (() => void)[];
-
-  async emit(name: string, ...args) {
-    await this.redisService.getClient().publish(name, JSON.stringify(args));
-  }
-
-  async subscribe(topic: string, callback) {
-    const client = redis.createClient(REDIS_CONFIG.port, REDIS_CONFIG.host);
-    client.on("message", (channel, message) => {
-      callback(...JSON.parse(message));
-    });
-    await client.subscribe(topic);
-  }
-}
-
 @Module({
   imports: [],
-  providers: [MetadataScanner, EventProvider, EventServiceSubscriberExplorer],
-  exports: [EventProvider],
+  providers: [MetadataScanner, AskProvider, AskServiceSubscriberExplorer],
+  exports: [AskProvider],
 })
-export class EventServiceModule implements OnModuleInit {
+export class AskServiceModule implements OnModuleInit {
   constructor(
-    private readonly explorer: EventServiceSubscriberExplorer,
-    private readonly eventService: EventProvider
+    private readonly explorer: AskServiceSubscriberExplorer,
+    private readonly askService: AskProvider
   ) { }
 
   async onModuleInit() {
@@ -151,9 +184,14 @@ export class EventServiceModule implements OnModuleInit {
 
     // set up subscriptions
     for (const subscriber of subscribers) {
-      await this.eventService.subscribe(
+      await this.askService.subscribe(
         subscriber.topic,
-        subscriber.callback.bind(subscriber.instance)
+        async (id, ...args) => {
+          const data = await subscriber.callback.apply(subscriber.instance, args);
+          if (data !== undefined) {
+            this.askService.emit(id, data);
+          }
+        }
       );
     }
   }

@@ -41,3 +41,4 @@ database.sqlite
 .env
 /tmp.zip
 /temp
+/core

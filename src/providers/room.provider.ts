@@ -15,7 +15,7 @@ export class RoomProvider {
     private readonly redisService: RedisService,
     private readonly codeRunnerService: CodeRunnerService,
     private readonly eventService: EventProvider
-  ) {}
+  ) { }
 
   private logger: Logger = new Logger("RoomService");
 
@@ -92,8 +92,7 @@ export class RoomProvider {
       } = JSON.parse(serializedRoom);
       const room = new Room(
         roomData.id,
-        roomData.managerSecret,
-        this.storeRoom
+        roomData.managerSecret
       );
       room.text = roomData.text;
       room.questionnaire = roomData.questionnaire;

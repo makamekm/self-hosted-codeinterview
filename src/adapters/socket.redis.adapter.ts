@@ -1,7 +1,6 @@
 import { IoAdapter } from "@nestjs/platform-socket.io";
 import { RedisClient } from "redis";
 import { createAdapter } from "socket.io-redis";
-import { setupWorker } from "@socket.io/sticky";
 import { REDIS_CONFIG } from "@env/config";
 
 export class SocketRedisAdapter extends IoAdapter {
@@ -11,7 +10,6 @@ export class SocketRedisAdapter extends IoAdapter {
     const subClient = pubClient.duplicate();
     const redisAdapter = createAdapter({ pubClient, subClient });
     server.adapter(redisAdapter);
-    setupWorker(server);
     return server;
   }
 }

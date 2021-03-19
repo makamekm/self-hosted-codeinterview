@@ -8,11 +8,13 @@ import { RoomClientDto, RoomDto } from "~/dto/room.dto";
 import { QuestionnaireService } from "./QuestionnaireService";
 import { toJS } from "mobx";
 import { RoomMessage } from "~/dto/room-message.dto";
+import { LoadingService } from "./LoadingService";
 
 export const RoomService: ServiceContextHook<any> = createService(
   () => {
     const service = useLocalObservable(() => ({
       socketService: null as ReturnType<typeof SocketService.useState>,
+      loadingService: null as ReturnType<typeof LoadingService.useState>,
       editorService: null as ReturnType<typeof EditorService.useState>,
       questionnaireService: null as ReturnType<
         typeof QuestionnaireService.useState
@@ -32,16 +34,16 @@ export const RoomService: ServiceContextHook<any> = createService(
       //   isManager: boolean;
       // }[],
       shouldKeepConnection: false,
-
       async connect() {
         if (!service.id) return;
 
         service.isConnecting = true;
         service.isConnected = false;
+        // service.loadingService.blockers++;
 
         if (!global.window) return;
 
-        const data = await service.socketService.emit(
+        let data = await service.socketService.emit(
           RoomMessage.ConnectRoom,
           service.id,
           service.managerSecret
@@ -123,6 +125,7 @@ export const RoomService: ServiceContextHook<any> = createService(
   (service) => {
     service.socketService = React.useContext(SocketService);
     service.editorService = React.useContext(EditorService);
+    service.loadingService = React.useContext(LoadingService);
     service.questionnaireService = React.useContext(QuestionnaireService);
     service.socketService.useOn("connect", service.onConnect);
     service.socketService.useOn("disconnect", service.onDisconnect);

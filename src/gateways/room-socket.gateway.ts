@@ -29,6 +29,7 @@ import { webSocketGatewayConfig } from "~/config/web-socket-gateway-config";
 import { RoomProvider } from "~/providers/room.provider";
 import { RoomMessage } from "~/dto/room-message.dto";
 import { EventMessage } from "~/dto/event-message.dto";
+import { AskProvider } from "~/providers/ask.provider";
 
 @WebSocketGateway(webSocketGatewayConfig)
 export class RoomSocketGateway
@@ -40,8 +41,9 @@ export class RoomSocketGateway
     private readonly redisService: RedisService,
     private readonly codeRunnerService: CodeRunnerService,
     private readonly eventService: EventProvider,
+    // private readonly askService: AskProvider,
     private readonly roomService: RoomProvider
-  ) {}
+  ) { }
 
   private logger: Logger = new Logger("RoomSocketGateway");
 
@@ -70,26 +72,18 @@ export class RoomSocketGateway
   onSubRoomChangeLanguage(roomId, language) {
     const room = this.roomService.rooms[roomId];
 
-    if (!room) {
-      return {
-        error: "The room has not been found!",
-      };
+    if (room) {
+      room.language = language;
     }
-
-    room.language = language;
   }
 
   @SubscribeEvent(EventMessage.RoomChangeText)
   onSubRoomChangeText(roomId, text) {
     const room = this.roomService.rooms[roomId];
 
-    if (!room) {
-      return {
-        error: "The room has not been found!",
-      };
+    if (room) {
+      room.text = text;
     }
-
-    room.text = text;
   }
 
   @SubscribeMessage(RoomMessage.CreateRoom)
@@ -97,7 +91,7 @@ export class RoomSocketGateway
     const id = uuidv4();
     const managerSecret = uuidv4();
 
-    let room = new Room(id, managerSecret, this.roomService.storeRoom);
+    let room = new Room(id, managerSecret);
 
     this.roomService.rooms[room.id] = room;
 
@@ -174,9 +168,9 @@ export class RoomSocketGateway
     roomId: string
   ): Promise<
     | {
-        data: string;
-        err: string;
-      }
+      data: string;
+      err: string;
+    }
     | ErrorDto
   > {
     if (!this.roomService.rooms[roomId]) {
@@ -220,8 +214,7 @@ export class RoomSocketGateway
         room.id,
         {},
         RoomMessage.RoomEndCode,
-        `Code has been executed by ${roomClient.username} within ${
-          result.time / 1000
+        `Code has been executed by ${roomClient.username} within ${result.time / 1000
         }s with exit code ${result.code}`
       );
 
@@ -275,10 +268,10 @@ export class RoomSocketGateway
     [roomId, managerSecret]: [roomId: string, managerSecret: string]
   ): Promise<
     | {
-        room: RoomDto;
-        client: RoomClientDto;
-        questionnaire: ResultQuestionnaireDto;
-      }
+      room: RoomDto;
+      client: RoomClientDto;
+      questionnaire: ResultQuestionnaireDto;
+    }
     | ErrorDto
   > {
     const username = (client.user && client.user.username) || rug.generate();
@@ -371,8 +364,7 @@ export class RoomSocketGateway
     );
 
     this.roomService.applyQuestionnaireDiff(room, diffs);
-
-    room.storeDebounceFn();
+    this.roomService.storeRoom(room);
   }
 
   @SubscribeMessage(RoomMessage.Editor)
@@ -428,7 +420,7 @@ export class RoomSocketGateway
     }
 
     room.language = language;
-    room.storeDebounceFn();
+    this.roomService.storeRoom(room);
 
     this.eventService.emit(
       EventMessage.RoomSendClientExcept,
@@ -496,7 +488,7 @@ export class RoomSocketGateway
     }
 
     room.text = text;
-    room.storeDebounceFn();
+    this.roomService.storeRoom(room);
 
     this.eventService.emit(EventMessage.RoomChangeText, room.id, text);
   }

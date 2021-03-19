@@ -1,8 +1,9 @@
 import { NestFactory } from "@nestjs/core";
 import * as path from "path";
-import * as bodyParser from 'body-parser';
+import bodyParser from 'body-parser';
 import { AppModule } from "./app.module";
-import { SocketRedisAdapter } from "./adapters/socket.redis.adapter";
+// import { SocketRedisAdapter } from "./adapters/socket.redis.adapter";
+// import { WsAdapter } from "@nestjs/platform-ws";
 import { CORS, WEB_SERVER_PORT, WEB_SERVER_HOST } from "@env/config";
 import { NextModule } from "@nestpress/next";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
@@ -26,15 +27,16 @@ export async function bootstrapAPI() {
     cors: CORS,
     logger: ["error", "warn", "log"],
   });
-  const port = WEB_SERVER_PORT;
+  const port = Number(WEB_SERVER_PORT);
 
   app.use(bodyParser.json({ limit: '100mb' }));
   app.useGlobalPipes(new ValidationPipe());
-  app.useWebSocketAdapter(new SocketRedisAdapter(app));
+  // app.useWebSocketAdapter(new WsAdapter(app));
+  // app.useWebSocketAdapter(new SocketRedisAdapter(app));
 
   const config = new DocumentBuilder()
-    .setTitle("Code Interview")
-    .setDescription("The Code Interview API description")
+    .setTitle("Coding Interview")
+    .setDescription("The Coding Interview API description")
     .setVersion("1.0")
     .build();
   const document = SwaggerModule.createDocument(app, config);

@@ -25,11 +25,13 @@ import { QuestionnaireController } from "./controllers/questionnaire.controller"
 import { UserController } from "./controllers/user.controller";
 import { RoomProvider } from "./providers/room.provider";
 import { ClusterProvider } from "./providers/cluster.provider";
+// import { AskServiceModule } from "./providers/ask.provider";
 
 @Module({
   imports: [
     // CacheModule.register(),
     EventServiceModule,
+    // AskServiceModule,
     RedisModule.register(REDIS_CONFIG),
     CacheModule.register({
       ttl: 5,

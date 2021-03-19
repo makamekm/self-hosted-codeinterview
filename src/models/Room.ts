@@ -1,4 +1,4 @@
-import { debounce } from "ts-debounce";
+// import { debounce } from "ts-debounce";
 import { RoomDto } from "~/dto/room.dto";
 import { ResultQuestionnaireDto } from "~/dto/result.questionnaire.dto";
 import { Language } from "~/dto/language.dto";
@@ -14,16 +14,15 @@ export class Room implements RoomDto {
     [id: string]: RoomClient;
   } = {};
 
-  storeDebounceFn: () => void;
+  // storeDebounceFn: () => void;
 
   constructor(
     id: string,
-    managerSecret: string,
-    storeFn: (room: Room) => Promise<void>
+    managerSecret: string
   ) {
     this.id = id;
     this.managerSecret = managerSecret;
-    this.storeDebounceFn = debounce(() => storeFn(this), 1000);
+    // this.storeDebounceFn = debounce(() => storeFn(this), 1000);
   }
 
   serialize(): RoomDto {
