@@ -13,7 +13,7 @@ import { FrontendMiddleware } from "./middlewares/frontend.middleware";
 import { ScheduleModule } from "@nestjs/schedule";
 import { RedisModule } from "nestjs-redis";
 import { RoomSocketGateway } from "./gateways/room-socket.gateway";
-import { CodeRunnerService } from "./providers/code-runner.provider";
+import { CodeRunnerProvider } from "./providers/code-runner.provider";
 import { GoogleStrategy } from "./strategies/google.strategy";
 import { GoogleController } from "./controllers/google.controller";
 import { EventServiceModule } from "./providers/event.provider";
@@ -61,7 +61,7 @@ import { ClusterProvider } from "./providers/cluster.provider";
     QuestionnaireProvider,
     RoomProvider,
     RoomSocketGateway,
-    CodeRunnerService,
+    CodeRunnerProvider,
     GoogleStrategy,
   ],
 })

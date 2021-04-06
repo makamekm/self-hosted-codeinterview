@@ -1,115 +1,139 @@
 import { Injectable, Inject, CACHE_MANAGER, Logger } from "@nestjs/common";
 import { RedisService } from "nestjs-redis";
 import { Cache } from "cache-manager";
-import { Language } from "~/dto/language.dto";
-import { ResultQuestionnaireDto } from "~/dto/result.questionnaire.dto";
-import { Room } from "~/models/Room";
 import { applyDiff } from "~/utils/diff.util";
-import { CodeRunnerService } from "./code-runner.provider";
 import { EventProvider } from "./event.provider";
+import { RoomDto } from "~/dto/room.dto";
+import { Cron } from "@nestjs/schedule";
+import { CLIENT_UPDATE_CRON } from "@env/config";
+import { EventMessage } from "~/dto/event-message.dto";
+import { RoomMessage } from "~/dto/room-message.dto";
+import { Socket } from "socket.io";
+import { UserDto } from "~/dto/user.dto";
 
 @Injectable()
 export class RoomProvider {
   constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly redisService: RedisService,
-    private readonly codeRunnerService: CodeRunnerService,
-    private readonly eventService: EventProvider
+    private readonly eventProvider: EventProvider
   ) { }
 
-  private logger: Logger = new Logger("RoomService");
+  private logger: Logger = new Logger("RoomProvider");
 
-  rooms: {
-    [id: string]: Room;
+  clients: {
+    [id: string]: {
+      [id: string]: Socket & { user: UserDto }
+    };
   } = {};
 
-  sendLocalRoomExcept(
-    room: Room,
-    clientId: string,
+  async sendLocalRoomExcept(
+    roomId: string,
+    exceptClientId: string,
     filter: {
       isManagersOnly?: boolean;
     },
     event: string,
     ...args: any
   ) {
+    if (!this.clients[roomId]) return;
+
+    const room = await this.getRoom(roomId);
+
     if (!room) return;
 
-    for (const key of Object.keys(room.clients)) {
-      if (key !== clientId && room.clients[key].socket) {
-        if (!filter.isManagersOnly || room.clients[key].isManager) {
-          room.clients[key].socket.emit(event, ...args);
+    for (const clientId of Object.keys(this.clients[roomId])) {
+      if (clientId !== exceptClientId && this.clients[roomId][clientId]) {
+        if (!filter.isManagersOnly || room.clients[clientId].isManager) {
+          this.clients[roomId][clientId].emit(event, ...args);
         }
       }
     }
   }
 
-  sendLocalRoom(
-    room: Room,
+  async sendLocalRoom(
+    roomId: string,
     filter: {
       isManagersOnly?: boolean;
     },
     event: string,
     ...args: any
   ) {
+    if (!this.clients[roomId]) return;
+
+    const room = await this.getRoom(roomId);
+
     if (!room) return;
 
-    for (const key of Object.keys(room.clients)) {
-      if (room.clients[key].socket) {
-        if (!filter.isManagersOnly || room.clients[key].isManager) {
-          room.clients[key].socket.emit(event, ...args);
+    for (const clientId of Object.keys(this.clients[roomId])) {
+      if (this.clients[roomId][clientId]) {
+        if (!filter.isManagersOnly || room.clients[clientId].isManager) {
+          this.clients[roomId][clientId].emit(event, ...args);
         }
       }
     }
   }
 
-  storeRoom = async (room: Room) => {
-    let result = await this.redisService.getClient().set(
+  async saveRoom(room: RoomDto) {
+    const result = await this.redisService.getClient().set(
       room.id,
-      JSON.stringify({
-        id: room.id,
-        managerSecret: room.managerSecret,
-        text: room.text,
-        questionnaire: room.questionnaire,
-        language: room.language,
-      })
+      JSON.stringify(room)
     );
     if (result) {
-      this.logger.log(
-        `Room has been cached: ${room.id} and managerKey: ${room.managerSecret}`
-      );
+      // this.logger.log(
+      //   `Room has been cached: ${room.id} and managerKey: ${room.managerSecret}`
+      // );
     }
   };
 
-  async restoreRoom(roomId: string) {
+  async getRoom(roomId: string) {
     const serializedRoom = await this.redisService.getClient().get(roomId);
     if (serializedRoom) {
-      const roomData: {
-        id: string;
-        managerSecret: string;
-        text: string;
-        questionnaire: ResultQuestionnaireDto;
-        language: Language;
-      } = JSON.parse(serializedRoom);
-      const room = new Room(
-        roomData.id,
-        roomData.managerSecret
-      );
-      room.text = roomData.text;
-      room.questionnaire = roomData.questionnaire;
-      room.language = roomData.language || Language.JavaScript;
-      this.rooms[room.id] = room;
-
-      this.logger.log(
-        `Room has been restored from cache: ${room.id} and managerKey: ${room.managerSecret}`
-      );
+      const room: RoomDto = JSON.parse(serializedRoom);
+      // this.logger.log(
+      //   `Room has been restored from cache: ${room.id} and managerKey: ${room.managerSecret}`
+      // );
+      return room;
     }
+    return null;
   }
 
-  applyQuestionnaireDiff(room: Room, { type, value }) {
+  applyQuestionnaireDiff(room: RoomDto, { type, value }) {
     if (type === "replace") {
       room.questionnaire = value;
     } else if (type === "diff") {
       room.questionnaire = applyDiff(room.questionnaire, value);
+    }
+  }
+
+  @Cron(CLIENT_UPDATE_CRON)
+  async handleCron() {
+    const roomIds = Object.keys(this.clients);
+    for (const roomId of roomIds) {
+      const clientIds = Object.keys(this.clients[roomId]);
+      if (clientIds.length > 0) {
+        const room = await this.getRoom(roomId);
+
+        if (!room) {
+          continue;
+        }
+
+        for (const clientId of clientIds) {
+          if (room.clients[clientId]) {
+            room.clients[clientId].timestamp = +new Date();
+          }
+        }
+
+        await this.saveRoom(room);
+
+        this.eventProvider.emit(
+          EventMessage.RoomSendClient,
+          room.id,
+          {},
+          RoomMessage.RoomUpdateClients,
+          room.clients
+        );
+      }
     }
   }
 }

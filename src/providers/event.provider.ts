@@ -131,6 +131,7 @@ export class EventProvider {
       callback(...JSON.parse(message));
     });
     await client.subscribe(topic);
+    return client;
   }
 }
 
@@ -145,16 +146,26 @@ export class EventServiceModule implements OnModuleInit {
     private readonly eventService: EventProvider
   ) { }
 
+  clients = [];
+
   async onModuleInit() {
+    await this.subscribe();
+  }
+
+  async subscribe() {
+    for (const client of this.clients) {
+      await client.unsubscribe();
+    }
+
     // find everything marked with @Subscribe
     const subscribers = this.explorer.explore();
 
     // set up subscriptions
     for (const subscriber of subscribers) {
-      await this.eventService.subscribe(
+      this.clients.push(await this.eventService.subscribe(
         subscriber.topic,
         subscriber.callback.bind(subscriber.instance)
-      );
+      ));
     }
   }
 }

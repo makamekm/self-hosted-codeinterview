@@ -72,6 +72,9 @@ export const EditorService: ServiceContextHook<any> = createService(
       onAddClient(client) {
         addSelectionClient(client.id);
       },
+      onUpdateClients(clients) {
+        service.roomService.room.clients = clients;
+      },
       onRemoveClient(client) {
         removeIdSelectionClient(service.editor, client.id);
       },
@@ -103,6 +106,7 @@ export const EditorService: ServiceContextHook<any> = createService(
       service.onEditorSelectionData
     );
     service.socketService.useOn(RoomMessage.RoomAddClient, service.onAddClient);
+    service.socketService.useOn(RoomMessage.RoomUpdateClients, service.onUpdateClients);
     service.socketService.useOn(
       RoomMessage.RoomRemoveClient,
       service.onRemoveClient

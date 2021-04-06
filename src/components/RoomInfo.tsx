@@ -11,17 +11,16 @@ export const RoomInfo = observer(() => {
       <div className="rounded-sm shadow-md bg-gray-700 px-4 py-2 space-y-2">
         <div className="font-semibold text-md">Participants</div>
         <div className="space-y-2 flex flex-col">
-          {Object.keys(roomService.room?.clients).map((id) => {
-            const client = roomService.room.clients[id];
+          {roomService.clients.map((client) => {
             return (
               <div
-                key={id}
+                key={client.id}
                 className="bg-gray-900 w-full flex flex-row justify-start items-center p-2 rounded-md shadow"
               >
                 <div className="flex flex-row justify-start items-center px-2 py-2 w-full text-left rounded-sm">
                   <div
                     className="text-6xl mr-2 -mt-2"
-                    style={{ lineHeight: 0, color: idToColor(id) }}
+                    style={{ lineHeight: 0, color: idToColor(client.username) }}
                   >
                     &bull;
                   </div>

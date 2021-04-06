@@ -7,7 +7,7 @@ import { makeHotPromise } from "~/utils/hot-promise.util";
 import { Language, LanguageRunnerData } from "~/dto/language.dto";
 
 @Injectable()
-export class CodeRunnerService {
+export class CodeRunnerProvider {
   path = path.resolve("./"); // TODO: extract to ENV
   timeout_value = 10; // TODO: extract to ENV
   limit_data = 1000;

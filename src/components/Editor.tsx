@@ -16,8 +16,8 @@ import Tooltip from "@reach/tooltip";
 import "@reach/tooltip/styles.css";
 import { Listbox, ListboxOption } from "@reach/listbox";
 import "@reach/listbox/styles.css";
-
 import {
+  Language,
   LanguageName,
   LanguageRunnerData,
   LanguageType,
@@ -65,7 +65,7 @@ const Editor: React.FC = observer(() => {
       <AceEditor
         ref={codemirrorRef}
         setOptions={{ useWorker: false }}
-        mode={LanguageType[roomService.room.language]}
+        mode={LanguageType[roomService.room.language || Language.JavaScript]}
         theme="dracula"
         height={editorHeight + "px"}
         className="min-w-full max-w-full min-h-full max-h-full"
@@ -79,7 +79,7 @@ const Editor: React.FC = observer(() => {
         }}
       />
       <div className="absolute bottom-4 left-4 z-10 space-x-2 flex flex-row">
-        {LanguageRunnerData[roomService.room.language] && (
+        {LanguageRunnerData[roomService.room.language || Language.JavaScript] && (
           <Tooltip label="Control + S">
             <button
               disabled={service.isExecuting}

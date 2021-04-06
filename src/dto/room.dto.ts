@@ -1,9 +1,11 @@
 import { Language } from "./language.dto";
+import { ResultQuestionnaireDto } from "./result.questionnaire.dto";
 
 export interface RoomClientDto {
   id: string;
   username: string;
   isManager: boolean;
+  timestamp: number;
 }
 
 export interface RoomDto {
@@ -14,4 +16,5 @@ export interface RoomDto {
   clients: {
     [id: string]: RoomClientDto;
   };
+  questionnaire?: ResultQuestionnaireDto
 }

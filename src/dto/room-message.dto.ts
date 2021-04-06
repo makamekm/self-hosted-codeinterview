@@ -15,4 +15,5 @@ export enum RoomMessage {
   RoomEndCode = "room-end-code",
   RoomEndCodeData = "room-end-code-data",
   RoomEndCodeErr = "room-end-code-err",
+  RoomUpdateClients = "room-update-clients",
 }

@@ -8,6 +8,7 @@ import { RoomClientDto, RoomDto } from "~/dto/room.dto";
 import { QuestionnaireService } from "./QuestionnaireService";
 import { toJS } from "mobx";
 import { RoomMessage } from "~/dto/room-message.dto";
+import { CLIENT_TTL } from "@env/config";
 import { LoadingService } from "./LoadingService";
 
 export const RoomService: ServiceContextHook<any> = createService(
@@ -21,6 +22,12 @@ export const RoomService: ServiceContextHook<any> = createService(
       >,
       connectHotPromise: makeHotPromise(),
       room: null as RoomDto,
+      currentDate: +new Date(),
+      get clients() {
+        return Object.keys(service.room?.clients).filter(id => {
+          return service.room.clients[id].timestamp + CLIENT_TTL > service.currentDate;
+        }).map(id => service.room.clients[id]);
+      },
       client: null as RoomClientDto,
       id: "",
       managerSecret: "",
@@ -142,5 +149,13 @@ export const RoomService: ServiceContextHook<any> = createService(
       RoomMessage.RoomChangeLanguage,
       service.onChangeLanguage
     );
+    React.useEffect(() => {
+      const interval = setInterval(() => {
+        service.currentDate = +new Date();
+      }, 1000);
+      return () => {
+        clearInterval(interval);
+      };
+    })
   }
 );

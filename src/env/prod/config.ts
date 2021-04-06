@@ -20,3 +20,6 @@ export const REDIS_CONFIG: RedisModuleOptions = {
 };
 
 export const ARCH = os.arch();
+
+export const CLIENT_TTL = 20000;
+export const CLIENT_UPDATE_CRON = "*/10 * * * * *";

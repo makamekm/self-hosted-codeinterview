@@ -12,7 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 import rug from "random-username-generator";
 import { Cache } from "cache-manager";
 import { RedisService } from "nestjs-redis";
-import { CodeRunnerService } from "../providers/code-runner.provider";
+import { CodeRunnerProvider } from "../providers/code-runner.provider";
 import { WsJwtGuard } from "~/guards/ws-jwt-guard";
 import { UserDto } from "~/dto/user.dto";
 import { RoomClientDto, RoomDto } from "~/dto/room.dto";
@@ -23,13 +23,11 @@ import {
   EventSubscribe as SubscribeEvent,
 } from "../providers/event.provider";
 import { Language } from "~/dto/language.dto";
-import { Room } from "~/models/Room";
-import { RoomClient } from "~/models/RoomClient";
 import { webSocketGatewayConfig } from "~/config/web-socket-gateway-config";
 import { RoomProvider } from "~/providers/room.provider";
 import { RoomMessage } from "~/dto/room-message.dto";
 import { EventMessage } from "~/dto/event-message.dto";
-import { AskProvider } from "~/providers/ask.provider";
+// import { AskProvider } from "~/providers/ask.provider";
 
 @WebSocketGateway(webSocketGatewayConfig)
 export class RoomSocketGateway
@@ -37,20 +35,20 @@ export class RoomSocketGateway
   @WebSocketServer() server: Server;
 
   constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly redisService: RedisService,
-    private readonly codeRunnerService: CodeRunnerService,
-    private readonly eventService: EventProvider,
+    private readonly codeRunnerProvider: CodeRunnerProvider,
+    private readonly eventProvider: EventProvider,
     // private readonly askService: AskProvider,
-    private readonly roomService: RoomProvider
+    private readonly roomProvider: RoomProvider
   ) { }
 
   private logger: Logger = new Logger("RoomSocketGateway");
 
   @SubscribeEvent(EventMessage.RoomSendClientExcept)
   onSubRoomSendClientExcept(roomId, clientId, filter, event, ...args) {
-    this.roomService.sendLocalRoomExcept(
-      this.roomService.rooms[roomId],
+    this.roomProvider.sendLocalRoomExcept(
+      roomId,
       clientId,
       filter,
       event,
@@ -60,30 +58,12 @@ export class RoomSocketGateway
 
   @SubscribeEvent(EventMessage.RoomSendClient)
   onSubRoomSendClient(roomId, filter, event, ...args) {
-    this.roomService.sendLocalRoom(
-      this.roomService.rooms[roomId],
+    this.roomProvider.sendLocalRoom(
+      roomId,
       filter,
       event,
       ...args
     );
-  }
-
-  @SubscribeEvent(EventMessage.RoomChangeLanguage)
-  onSubRoomChangeLanguage(roomId, language) {
-    const room = this.roomService.rooms[roomId];
-
-    if (room) {
-      room.language = language;
-    }
-  }
-
-  @SubscribeEvent(EventMessage.RoomChangeText)
-  onSubRoomChangeText(roomId, text) {
-    const room = this.roomService.rooms[roomId];
-
-    if (room) {
-      room.text = text;
-    }
   }
 
   @SubscribeMessage(RoomMessage.CreateRoom)
@@ -91,21 +71,22 @@ export class RoomSocketGateway
     const id = uuidv4();
     const managerSecret = uuidv4();
 
-    let room = new Room(id, managerSecret);
+    let room: RoomDto = {
+      id,
+      managerSecret,
+      clients: {},
+      language: null,
+      text: '',
+      questionnaire: null,
+    };
 
-    this.roomService.rooms[room.id] = room;
+    await this.roomProvider.saveRoom(room);
 
     this.logger.log(
       `Room has been created: ${id} and managerKey: ${managerSecret} by ${client.id}`
     );
 
-    await this.roomService.storeRoom(room);
-
-    // TODO: serialize
-    return {
-      ...room.serialize(),
-      managerSecret: managerSecret,
-    };
+    return room;
   }
 
   @SubscribeMessage(RoomMessage.ChangeClient)
@@ -118,11 +99,7 @@ export class RoomSocketGateway
       }
     ]
   ): Promise<RoomClientDto | ErrorDto> {
-    if (!this.roomService.rooms[roomId]) {
-      await this.roomService.restoreRoom(roomId);
-    }
-
-    const room = this.roomService.rooms[roomId];
+    const room = await this.roomProvider.getRoom(roomId);
 
     if (!room) {
       return {
@@ -146,7 +123,7 @@ export class RoomSocketGateway
       isManager: roomClient.isManager,
     };
 
-    this.eventService.emit(
+    this.eventProvider.emit(
       EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
@@ -155,11 +132,7 @@ export class RoomSocketGateway
       clientData
     );
 
-    return {
-      id: roomClient.id,
-      username: roomClient.username,
-      isManager: roomClient.isManager,
-    };
+    return roomClient;
   }
 
   @SubscribeMessage(RoomMessage.ExecuteRoom)
@@ -173,11 +146,7 @@ export class RoomSocketGateway
     }
     | ErrorDto
   > {
-    if (!this.roomService.rooms[roomId]) {
-      await this.roomService.restoreRoom(roomId);
-    }
-
-    const room = this.roomService.rooms[roomId];
+    const room = await this.roomProvider.getRoom(roomId);
 
     if (!room) {
       return {
@@ -193,7 +162,7 @@ export class RoomSocketGateway
       };
     }
 
-    this.eventService.emit(
+    this.eventProvider.emit(
       EventMessage.RoomSendClient,
       room.id,
       {},
@@ -204,12 +173,12 @@ export class RoomSocketGateway
     this.logger.log(`Code is being executed: ${roomId} by ${client.id}`);
 
     try {
-      let result = await this.codeRunnerService.execute(
+      let result = await this.codeRunnerProvider.execute(
         room.text,
         room.language || Language.JavaScript
       );
 
-      this.eventService.emit(
+      this.eventProvider.emit(
         EventMessage.RoomSendClient,
         room.id,
         {},
@@ -219,7 +188,7 @@ export class RoomSocketGateway
       );
 
       if (result.data) {
-        this.eventService.emit(
+        this.eventProvider.emit(
           EventMessage.RoomSendClient,
           room.id,
           {},
@@ -229,7 +198,7 @@ export class RoomSocketGateway
       }
 
       if (result.err) {
-        this.eventService.emit(
+        this.eventProvider.emit(
           EventMessage.RoomSendClient,
           room.id,
           {},
@@ -244,7 +213,7 @@ export class RoomSocketGateway
 
       return result;
     } catch (error) {
-      this.eventService.emit(
+      this.eventProvider.emit(
         EventMessage.RoomSendClient,
         room.id,
         {},
@@ -276,11 +245,7 @@ export class RoomSocketGateway
   > {
     const username = (client.user && client.user.username) || rug.generate();
 
-    if (!this.roomService.rooms[roomId]) {
-      await this.roomService.restoreRoom(roomId);
-    }
-
-    const room = this.roomService.rooms[roomId];
+    const room = await this.roomProvider.getRoom(roomId);
 
     if (!room) {
       return {
@@ -294,35 +259,44 @@ export class RoomSocketGateway
       };
     }
 
-    const roomClient = new RoomClient(
-      client.id,
-      client,
+    const roomClient: RoomClientDto = {
+      id: client.id,
+      isManager: room.managerSecret === managerSecret,
+      timestamp: +new Date(),
       username,
-      room.managerSecret === managerSecret
-    );
+    };
 
     room.clients[roomClient.id] = roomClient;
 
     this.logger.log(
-      `Client Room has been created: ${roomId} and isManager: ${roomClient.isManager} by ${client.id} username: {username}`
+      `Client Room has been created: ${roomId} and isManager: ${roomClient.isManager} by ${client.id} username: ${username}`
     );
 
-    this.eventService.emit(
+    if (room) {
+      room.clients[client.id] = roomClient;
+      await this.roomProvider.saveRoom(room);
+
+      if (!this.roomProvider.clients[room.id]) {
+        this.roomProvider.clients[room.id] = {};
+      }
+
+      this.roomProvider.clients[room.id][client.id] = client;
+    }
+
+    this.eventProvider.emit(
       EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
       {},
       RoomMessage.RoomAddClient,
-      {
-        id: roomClient.id,
-        username: roomClient.username,
-        isManager: roomClient.isManager,
-      }
+      roomClient
     );
 
+    delete room.questionnaire;
+
     return {
-      client: roomClient.serialize(),
-      room: room.serialize(),
+      client: roomClient,
+      room,
       questionnaire: roomClient.isManager ? room.questionnaire : null,
     };
   }
@@ -336,7 +310,7 @@ export class RoomSocketGateway
       diffs: any // TODO: add diff dto
     ]
   ): Promise<void | ErrorDto> {
-    const room = this.roomService.rooms[roomId];
+    const room = await this.roomProvider.getRoom(roomId);
 
     if (!room) {
       return {
@@ -352,7 +326,7 @@ export class RoomSocketGateway
       };
     }
 
-    this.eventService.emit(
+    this.eventProvider.emit(
       EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
@@ -363,8 +337,8 @@ export class RoomSocketGateway
       diffs
     );
 
-    this.roomService.applyQuestionnaireDiff(room, diffs);
-    this.roomService.storeRoom(room);
+    this.roomProvider.applyQuestionnaireDiff(room, diffs);
+    this.roomProvider.saveRoom(room);
   }
 
   @SubscribeMessage(RoomMessage.Editor)
@@ -372,7 +346,7 @@ export class RoomSocketGateway
     client: Socket,
     [roomId, ...args]: any[]
   ): Promise<void | ErrorDto> {
-    const room = this.roomService.rooms[roomId];
+    const room = await this.roomProvider.getRoom(roomId);
 
     if (!room) {
       return {
@@ -388,7 +362,7 @@ export class RoomSocketGateway
       };
     }
 
-    this.eventService.emit(
+    this.eventProvider.emit(
       EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
@@ -403,7 +377,7 @@ export class RoomSocketGateway
     client: Socket,
     [roomId, language]: [roomId: string, language: Language]
   ): Promise<void | ErrorDto> {
-    const room = this.roomService.rooms[roomId];
+    const room = await this.roomProvider.getRoom(roomId);
 
     if (!room) {
       return {
@@ -420,9 +394,9 @@ export class RoomSocketGateway
     }
 
     room.language = language;
-    this.roomService.storeRoom(room);
+    this.roomProvider.saveRoom(room);
 
-    this.eventService.emit(
+    this.eventProvider.emit(
       EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
@@ -430,8 +404,6 @@ export class RoomSocketGateway
       RoomMessage.RoomChangeLanguage,
       language
     );
-
-    this.eventService.emit(EventMessage.RoomChangeLanguage, room.id, language);
   }
 
   @SubscribeMessage(RoomMessage.EditorSelection)
@@ -439,7 +411,7 @@ export class RoomSocketGateway
     client: Socket,
     [roomId, ...args]: any[]
   ): Promise<void | ErrorDto> {
-    const room = this.roomService.rooms[roomId];
+    const room = await this.roomProvider.getRoom(roomId);
 
     if (!room) {
       return {
@@ -455,7 +427,7 @@ export class RoomSocketGateway
       };
     }
 
-    this.eventService.emit(
+    this.eventProvider.emit(
       EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
@@ -471,7 +443,7 @@ export class RoomSocketGateway
     client: Socket,
     [roomId, text]: any[]
   ): Promise<void | ErrorDto> {
-    const room = this.roomService.rooms[roomId];
+    const room = await this.roomProvider.getRoom(roomId);
 
     if (!room) {
       return {
@@ -488,34 +460,36 @@ export class RoomSocketGateway
     }
 
     room.text = text;
-    this.roomService.storeRoom(room);
-
-    this.eventService.emit(EventMessage.RoomChangeText, room.id, text);
+    this.roomProvider.saveRoom(room);
   }
 
   afterInit(server: Server) {
     this.logger.log("Room Socket Gateway has been inited!");
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
 
-    for (const key of Object.keys(this.roomService.rooms)) {
-      const room = this.roomService.rooms[key];
-      if (room.clients[client.id]) {
-        const roomClient = room.clients[client.id];
-        delete room.clients[client.id];
-        this.eventService.emit(
+    for (const roomId of Object.keys(this.roomProvider.clients)) {
+      const roomClients = this.roomProvider.clients[roomId];
+      if (roomClients[client.id]) {
+        const roomClient = roomClients[client.id];
+        delete roomClients[client.id];
+
+        const room = await this.roomProvider.getRoom(roomId);
+
+        if (room) {
+          delete room.clients[client.id];
+          await this.roomProvider.saveRoom(room);
+        }
+
+        this.eventProvider.emit(
           EventMessage.RoomSendClientExcept,
-          room.id,
+          roomId,
           roomClient.id,
           {},
           RoomMessage.RoomRemoveClient,
-          {
-            id: roomClient.id,
-            username: roomClient.username,
-            isManager: roomClient.isManager,
-          }
+          roomClient
         );
       }
     }
