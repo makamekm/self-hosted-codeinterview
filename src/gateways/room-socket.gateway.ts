@@ -117,19 +117,13 @@ export class RoomSocketGateway
 
     roomClient.username = data.username;
 
-    let clientData = {
-      id: roomClient.id,
-      username: roomClient.username,
-      isManager: roomClient.isManager,
-    };
-
     this.eventProvider.emit(
       EventMessage.RoomSendClientExcept,
       room.id,
       roomClient.id,
       {},
       RoomMessage.RoomChangeClient,
-      clientData
+      roomClient
     );
 
     return roomClient;
@@ -472,25 +466,26 @@ export class RoomSocketGateway
 
     for (const roomId of Object.keys(this.roomProvider.clients)) {
       const roomClients = this.roomProvider.clients[roomId];
+
       if (roomClients[client.id]) {
-        const roomClient = roomClients[client.id];
         delete roomClients[client.id];
 
         const room = await this.roomProvider.getRoom(roomId);
 
         if (room) {
+          const roomClientDto = room.clients[client.id];
           delete room.clients[client.id];
           await this.roomProvider.saveRoom(room);
-        }
 
-        this.eventProvider.emit(
-          EventMessage.RoomSendClientExcept,
-          roomId,
-          roomClient.id,
-          {},
-          RoomMessage.RoomRemoveClient,
-          roomClient
-        );
+          this.eventProvider.emit(
+            EventMessage.RoomSendClientExcept,
+            roomId,
+            roomClientDto.id,
+            {},
+            RoomMessage.RoomRemoveClient,
+            roomClientDto
+          );
+        }
       }
     }
   }
